@@ -64,14 +64,22 @@ class ScoreBoardKeyListener extends KeyAdapter {
                 }
             break;
             case WaitingForColorToAdd:
-                game.addPlayer(helper.getPlayerColor(e.getKeyChar()));
-                state = State.Entry;
-                board.setState(ScoreBoard.ScoreBoardState.DEFAULT);
+                {
+                    PlayerColor pc = helper.getPlayerColor(e.getKeyChar());
+                    if (pc != null)
+                        game.addPlayer(pc);
+                    state = State.Entry;
+                    board.setState(ScoreBoard.ScoreBoardState.DEFAULT);
+                }
             break;
             case WaitingForColorToDelete:
-                game.removePlayer(helper.getPlayerColor(e.getKeyChar()));
-                state = State.Entry;
-                board.setState(ScoreBoard.ScoreBoardState.DEFAULT);
+                {
+                    PlayerColor pc = helper.getPlayerColor(e.getKeyChar());
+                    if (pc != null)
+                        game.removePlayer(pc);
+                    state = State.Entry;
+                    board.setState(ScoreBoard.ScoreBoardState.DEFAULT);
+                }
             break;
             case Entry:
                 char lowerChar = Character.toLowerCase(e.getKeyChar());
