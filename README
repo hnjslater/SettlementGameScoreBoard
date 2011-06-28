@@ -1,0 +1,13 @@
+Issues:
+
+* Fullscreen mode code is iffy (shouldn't need to create a new JFrame everytime).
+* Fullscreen mode always picks the primary monitor.
+* Probably should be using Maven or Ant or something instead of make
+
+
+Todo:
+
+* Applet Version
+* Animations
+* More event based interaction with the model
+* Split of a Controller (so we can be all MVC).
