@@ -1,12 +1,11 @@
   import java.awt.Graphics;
   import java.awt.Color;
   
-  class Particle {
+  class Particle extends GUIObject {
         public Particle(int x,int y, Color c) {
-            this.x = x;
-            this.y = y;
-            this.dx = 30 - (int)Math.floor(Math.random()*60);
-            this.dy = 30 - (int)Math.floor(Math.random()*60);
+            super(x,y,6,6);
+            this.dx = 5.0 - Math.random()*10.0;
+            this.dy = 5.0 - Math.random()*10.0;
             this.c = c;
         }
         public void paint(Graphics g) {
@@ -14,14 +13,11 @@
             g.fillOval(x-3,y-3,6,6);
         }
         public void tick() {
-            this.x += dx;
-            this.y += dy;
-            this.dy += 2;
+            translate((int)Math.round(dx),(int)Math.round(dy));
+            this.dy += 0.1;
         }
-        public int x;
-        public int y;
-        public int dx;
-        public int dy;
-        public Color c;
+        private double dx;
+        private double dy;
+        private Color c;
     }
 

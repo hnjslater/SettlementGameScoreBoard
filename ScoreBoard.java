@@ -9,6 +9,10 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Font;
 import java.awt.image.BufferStrategy;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseListener;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import javax.swing.JFrame;
 
 final class ScoreBoard implements GameListener {
@@ -26,13 +30,26 @@ final class ScoreBoard implements GameListener {
     private Game game;
     private ScoreBoardHelper helper = new ScoreBoardHelper();
     private KeyListener controller;
+    private MouseListener mouseController;
     private boolean showHelp = true;
     private boolean showColorHelp = true;
     private boolean fullScreen = false;
     private Player winner;
-    private List<Particle> particles;
+    private List<GUIObject> guiObjects;
+    private List<HotZone> hotZones;
 
-  
+ 
+    public enum ops {INC, DEC};
+    public class HotZone {
+        public HotZone(Player p, ops o, Shape z) {
+            this.player = p;
+            this.operation = o;
+            this.zone = z;
+        }
+        public ops operation;
+        public Player player;
+        public Shape zone;
+    }
 
     
     // might as well cache these;
@@ -45,10 +62,12 @@ final class ScoreBoard implements GameListener {
         this.helpMessage = helper.getHelpMessage(ScoreBoardState.DEFAULT);
         this.controller = new ScoreBoardKeyListener(game, this);
 
+        this.hotZones = Collections.synchronizedList(new LinkedList<HotZone>()); 
+        this.mouseController = new ScoreBoardMouseListener(hotZones);
+
         toggleFullScreen();
 
-        particles = new LinkedList<Particle>();
-
+        guiObjects = Collections.synchronizedList(new LinkedList<GUIObject>());
    }
 
     public void setShowHelp(boolean showHelp) {
@@ -82,13 +101,65 @@ final class ScoreBoard implements GameListener {
         this.editingPlayer = playerColor;
     }
 
-    public void startRenderLoop() throws InterruptedException {
+    public void renderLoop() {
         while (true) {
             paint();
-            if (particles.size() == 0)
-                Thread.sleep(10);
         }
     }
+
+    public void tickLoop() {
+        while (true) {
+            List<GUIObject> toremove = new ArrayList<GUIObject>();
+            int width = frame.getWidth();
+            int height = frame.getHeight();
+
+            synchronized(guiObjects) { 
+                for (GUIObject p : guiObjects) {
+                    p.tick();
+                    if (p.y > height || p.x < 0 || p.x > width) {
+                        toremove.add(p);
+                    }
+                }
+            }
+
+            guiObjects.removeAll(toremove);
+
+            if (guiObjects.size() < 15 && winner != null) {
+                int startx = (int)(Math.floor(Math.random() * width));
+                int starty = (int)(Math.floor(Math.random() * height));
+                for (int i = 0; i < 40; i++) {
+                    guiObjects.add(new Particle(startx,starty,helper.getGraphicsColor(winner.getPlayerColor())));
+                }
+            }
+
+            try {
+                Thread.sleep(10);
+            }
+            catch (InterruptedException ex) {
+                // If we've been interrupted, do the update;
+            }
+        }
+    }
+
+    public void run() throws InterruptedException {
+        Thread graphics = new Thread() {
+            public void run() {
+                tickLoop();
+            }
+        };
+
+        Thread ticker = new Thread() {
+            public void run() {
+                renderLoop();
+            }
+        };
+
+        graphics.start();
+        ticker.start();
+        graphics.join();
+        ticker.join();
+    }
+
     public synchronized void toggleFullScreen() {
 
         // To be honest, this is all a bit messy.
@@ -102,6 +173,7 @@ final class ScoreBoard implements GameListener {
 
         frame = new JFrame(gs.getDefaultConfiguration());
         frame.addKeyListener(controller);
+        frame.addMouseListener(mouseController);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.validate();
 
@@ -152,14 +224,14 @@ final class ScoreBoard implements GameListener {
         int littleTextDescent = (int)(graphics.getFontMetrics(littleFont).getMaxDescent());
         int lineHeight = 0;
         if (game.getNumberOfPlayers() > 0) {
-            if (showHelp && particles.size() == 0) {
+            if (showHelp && guiObjects.size() == 0) {
                 lineHeight = (height - (littleTextHeight * 2)) / (game.getNumberOfPlayers());
             }
             else {
                 lineHeight = height / game.getNumberOfPlayers();
             }
         }
-        int hozOffset = (lineHeight - bigTextHeight) / 2;
+        int hozOffset = 0; 
         int scoreWidth = graphics.getFontMetrics(bigFont).stringWidth("00 "); 
 
         graphics.setFont( bigFont );
@@ -168,11 +240,12 @@ final class ScoreBoard implements GameListener {
         PlayerColor largestArmy = game.getAchievement(Achievement.LargestArmy);
 
         // Put the cursor in the right place
-        int cursor = hozOffset + (int)(graphics.getFontMetrics(bigFont).getMaxAscent());
-
+        int cursorDrop =  (int)(graphics.getFontMetrics(bigFont).getMaxAscent()) + (lineHeight - bigTextHeight) / 2;;
+        int cursor = hozOffset; 
+        hotZones.clear();
         for ( Player p : game.getLeaderBoard() ) {
             graphics.setColor( helper.getGraphicsColor(p.getPlayerColor()) );
-            graphics.drawString( new Integer( p.getVP()).toString(), 50, cursor );
+            graphics.drawString( new Integer( p.getVP()).toString(), 50, cursor+cursorDrop );
             String displayName = p.getName();
 
             // Hacky cursor
@@ -186,42 +259,59 @@ final class ScoreBoard implements GameListener {
                 displayName += " (LA)";
 
             // Finally the player name!
-            graphics.drawString( displayName, 50+scoreWidth, cursor );
+            graphics.drawString( displayName, 50+scoreWidth, cursor+cursorDrop );
 
             if (getShowColorHelp()) {
-                graphics.drawChars( new char[] {helper.getColorChar(p.getPlayerColor())}, 0, 1, width-70, cursor );
+                graphics.drawChars( new char[] {helper.getColorChar(p.getPlayerColor())}, 0, 1, width-70, cursor+cursorDrop );
             }
+
+            // Plus box:
+            int unit = lineHeight/21;
+            Rectangle box = new Rectangle(width-150-unit*7-5, cursor+lineHeight/3-5, unit*7+10, unit*7+10);
+            Polygon pol = new Polygon();
+            pol.addPoint(unit*3,    0);
+            pol.addPoint(unit*4,    0);
+            pol.addPoint(unit*4,    unit*3);
+            pol.addPoint(unit*7,    unit*3);
+            pol.addPoint(unit*7,    unit*4);
+            pol.addPoint(unit*4,    unit*4);
+            pol.addPoint(unit*4,    unit*7);
+            pol.addPoint(unit*3,    unit*7);
+            pol.addPoint(unit*3,    unit*4);
+            pol.addPoint(0,         unit*4);
+            pol.addPoint(0,         unit*3);
+            pol.addPoint(unit*3,    unit*3);
+            pol.translate((int)(box.getX()+5), (int)(box.getY()+5));
+            graphics.fillPolygon(pol);
+
+            graphics.drawRect(box.x, box.y, box.width, box.height);
+            hotZones.add(new HotZone(p,ops.INC,box));
+
+            // Minus box:
+            Rectangle box2 = new Rectangle(width-150+10, cursor+lineHeight/3-5, unit*7+10, unit*7+10);
+            graphics.fillRect((int)(box2.getX()+5), (int)(box2.getY()+5+unit*3), unit*7, unit);
+
+            graphics.drawRect(box2.x, box2.y, box2.width, box2.height);
+            hotZones.add(new HotZone(p,ops.DEC,box2));
+
+
             cursor += lineHeight;
         }
 
-        if (showHelp && particles.size() == 0) {
+        if (showHelp && guiObjects.size() == 0) {
             graphics.setColor( Color.WHITE );
             graphics.setFont(littleFont);
             graphics.drawString( helpMessage, 0, height-littleTextDescent-littleTextHeight);
             graphics.drawString( helper.getColorHelp(), 0, height-littleTextDescent);
         }
-        
-        List<Particle> toremove = new ArrayList<Particle>();
-        for (Particle p : particles) {
-            if (p.y > height || p.x < 0 || p.x > width) {
-                toremove.add(p);
-            }
-            else {
-                p.tick();
+        synchronized(guiObjects) { 
+            for (GUIObject p : guiObjects) {
                 p.paint(graphics);
             }
         }
-        particles.removeAll(toremove);
-        if (particles.size() < 15 && winner != null) {
-            int startx = (int)(Math.floor(Math.random() * width));
-            int starty = (int)(Math.floor(Math.random() * height));
-            for (int i = 0; i < 30; i++) {
-                particles.add(new Particle(startx,starty,helper.getGraphicsColor(winner.getPlayerColor())));
-            }
-        }
+
         graphics.dispose();
         bf.show();
-
     }
 
     public void winnerChanged(WinnerChangedEvent wce) {
