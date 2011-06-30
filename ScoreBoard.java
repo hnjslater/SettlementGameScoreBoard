@@ -32,7 +32,7 @@ final class ScoreBoard implements GameListener {
     private ScoreBoardHelper helper = new ScoreBoardHelper();
     private KeyListener controller;
     private MouseInputListener mouseController;
-    private boolean showHelp = true;
+    private boolean showHelp = false;
     private boolean showColorHelp = true;
     private boolean showMouseControls = false;
     private boolean fullScreen = false;
@@ -289,19 +289,19 @@ final class ScoreBoard implements GameListener {
             //FIXME all of the following code really....
 
 
-                int unit = lineHeight/21;
+                int unit = lineHeight/23;
 
 
                 if (winner == null) {
 
                     // Longest Road button
 
-                    Ellipse2D roadButton = new Ellipse2D.Double(width-150-unit*36, cursor+unit*8, unit*9+12, unit*9+12);
+                    Ellipse2D roadButton = new Ellipse2D.Double(width-150-unit*48, cursor+unit*6, unit*15, unit*15);
                     if (p.getPlayerColor() != longestRoad) {
                         graphics.fillOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
                         hotZones.add(new HotZone(p,ops.LR,roadButton));
                         graphics.setColor(Color.BLACK);
-                        graphics.drawString( "r", width-150-unit*34, cursor+cursorDrop );
+                        graphics.drawString( "R", width-150-unit*45, cursor+cursorDrop );
                     }
                     else {
                         graphics.drawOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
@@ -310,13 +310,13 @@ final class ScoreBoard implements GameListener {
                    
 
                     // Largest Army button
-                    Ellipse2D armyButton = new Ellipse2D.Double(width-150-unit*24, cursor+unit*8, unit*9+10, unit*9+10);
+                    Ellipse2D armyButton = new Ellipse2D.Double(width-150-unit*32, cursor+unit*6, unit*15, unit*15);
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
                     if (p.getPlayerColor() != largestArmy) {
                         graphics.fillOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
                         hotZones.add(new HotZone(p,ops.LA,armyButton));
                         graphics.setColor(Color.BLACK);
-                        graphics.drawString( "a", width-150-unit*22, cursor+cursorDrop );
+                        graphics.drawString( "A", width-150-unit*29, cursor+cursorDrop );
                     }
                     else {
                         graphics.drawOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
@@ -325,7 +325,7 @@ final class ScoreBoard implements GameListener {
 
                     // Plus box:
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
-                    Ellipse2D plusButton = new Ellipse2D.Double(width-150-unit*12, cursor+unit*8, unit*9+10, unit*9+10);
+                    Ellipse2D plusButton = new Ellipse2D.Double(width-150-unit*16, cursor+unit*6, unit*15, unit*15);
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
                     Polygon pol = new Polygon();
                     pol.addPoint(unit*3, 0);
@@ -340,7 +340,7 @@ final class ScoreBoard implements GameListener {
                     pol.addPoint(0, unit*4);
                     pol.addPoint(0, unit*3);
                     pol.addPoint(unit*3, unit*3);
-                    pol.translate((int)(plusButton.getX()+unit*2), (int)(plusButton.getY()+unit*2));
+                    pol.translate((int)(plusButton.getX()+unit*4), (int)(plusButton.getY()+unit*4));
                     graphics.fillOval((int)plusButton.getX(), (int)plusButton.getY(), (int)plusButton.getWidth(), (int)plusButton.getHeight());
                     graphics.setColor(Color.BLACK);
                     graphics.fillPolygon(pol);
@@ -349,10 +349,10 @@ final class ScoreBoard implements GameListener {
                 // Minus box:
                 if ((winner == null && p.getSettlementVP() > 2) || winner == p) {
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
-                    Ellipse2D box2 = new Ellipse2D.Double(width-150, cursor+unit*8, unit*9+10, unit*9+10);
+                    Ellipse2D box2 = new Ellipse2D.Double(width-150, cursor+unit*6, unit*15, unit*15);
                     graphics.fillOval((int)box2.getX(), (int)box2.getY(), (int)box2.getWidth(), (int)box2.getHeight());
                     graphics.setColor(Color.BLACK);
-                    graphics.fillRect((int)(box2.getX()+unit*2), (int)(box2.getY()+unit*5), unit*7, unit);
+                    graphics.fillRect((int)(box2.getX()+unit*4), (int)(box2.getY()+unit*7), unit*7, unit);
 
 
                     hotZones.add(new HotZone(p,ops.DEC,box2));
