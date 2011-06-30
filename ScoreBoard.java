@@ -9,7 +9,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Font;
 import java.awt.image.BufferStrategy;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
+import javax.swing.event.MouseInputListener;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -31,16 +31,17 @@ final class ScoreBoard implements GameListener {
     private Game game;
     private ScoreBoardHelper helper = new ScoreBoardHelper();
     private KeyListener controller;
-    private MouseListener mouseController;
+    private MouseInputListener mouseController;
     private boolean showHelp = true;
     private boolean showColorHelp = true;
+    private boolean showMouseControls = false;
     private boolean fullScreen = false;
     private Player winner;
     private List<GUIObject> guiObjects;
     private List<HotZone> hotZones;
 
  
-    public enum ops {INC, DEC};
+    public enum ops {INC, DEC, LR, LA};
     public class HotZone {
         public HotZone(Player p, ops o, Shape z) {
             this.player = p;
@@ -64,7 +65,7 @@ final class ScoreBoard implements GameListener {
         this.controller = new ScoreBoardKeyListener(game, this);
 
         this.hotZones = Collections.synchronizedList(new LinkedList<HotZone>()); 
-        this.mouseController = new ScoreBoardMouseListener(hotZones);
+        this.mouseController = new ScoreBoardMouseListener(this,game,hotZones);
 
         toggleFullScreen();
 
@@ -85,6 +86,14 @@ final class ScoreBoard implements GameListener {
 
     public boolean getShowColorHelp() {
         return showColorHelp;
+    }
+
+    public void setShowMouseControls(boolean showMouseControls) {
+        this.showMouseControls = showMouseControls;
+    }
+
+    public boolean getShowMouseControls() {
+        return showMouseControls;
     }
 
     public void setState(ScoreBoardState state) {
@@ -168,6 +177,12 @@ final class ScoreBoard implements GameListener {
         // To be honest, this is all a bit messy.
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice gs = ge.getDefaultScreenDevice();
+
+        // If we can't do full screen and there is no window to display,
+        //  then there is nothing to do here.
+        if (frame != null && !gs.isFullScreenSupported())
+            return;
+
         if (frame != null) {
             frame.setVisible(false);
             gs.setFullScreenWindow(null);
@@ -177,6 +192,7 @@ final class ScoreBoard implements GameListener {
         frame = new JFrame(gs.getDefaultConfiguration());
         frame.addKeyListener(controller);
         frame.addMouseListener(mouseController);
+        frame.addMouseMotionListener(mouseController);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.validate();
 
@@ -269,45 +285,73 @@ final class ScoreBoard implements GameListener {
                 graphics.drawChars( new char[] {helper.getColorChar(p.getPlayerColor())}, 0, 1, width-70, cursor+cursorDrop );
             }
 
-
+            if (getShowMouseControls()) {
             //FIXME all of the following code really....
-            // Plus box:
-            int unit = lineHeight/21;
-            Ellipse2D box = new Ellipse2D.Double(width-150-unit*7-5, cursor+lineHeight/3-5, unit*7+10, unit*7+10);
-            Polygon pol = new Polygon();
-            pol.addPoint(unit*3,    0);
-            pol.addPoint(unit*4,    0);
-            pol.addPoint(unit*4,    unit*3);
-            pol.addPoint(unit*7,    unit*3);
-            pol.addPoint(unit*7,    unit*4);
-            pol.addPoint(unit*4,    unit*4);
-            pol.addPoint(unit*4,    unit*7);
-            pol.addPoint(unit*3,    unit*7);
-            pol.addPoint(unit*3,    unit*4);
-            pol.addPoint(0,         unit*4);
-            pol.addPoint(0,         unit*3);
-            pol.addPoint(unit*3,    unit*3);
-            pol.translate((int)(box.getX()+5), (int)(box.getY()+5));
-            graphics.fillOval((int)box.getX(), (int)box.getY(), (int)box.getWidth(), (int)box.getHeight());
-            graphics.setColor(Color.BLACK);
-            graphics.fillPolygon(pol);
 
 
-            hotZones.add(new HotZone(p,ops.INC,box));
-            graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
-            // Minus box:
-            Ellipse2D box2 = new Ellipse2D.Double(width-150+10, cursor+lineHeight/3-5, unit*7+10, unit*7+10);
-            graphics.fillOval((int)box2.getX(), (int)box2.getY(), (int)box2.getWidth(), (int)box2.getHeight());
-            graphics.setColor(Color.BLACK);
-            graphics.fillRect((int)(box2.getX()+5), (int)(box2.getY()+5+unit*3), unit*7, unit);
+                int unit = lineHeight/21;
 
 
-            hotZones.add(new HotZone(p,ops.DEC,box2));
+                if (winner == null) {
+
+                    // Longest Road button
+                    if (p.getPlayerColor() != longestRoad) {
+                        Ellipse2D roadButton = new Ellipse2D.Double(width-150-unit*36, cursor+unit*8, unit*9+12, unit*9+12);
+                        graphics.fillOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
+                        hotZones.add(new HotZone(p,ops.LR,roadButton));
+
+                        graphics.setColor(Color.BLACK);
+                        graphics.drawString( "r", width-150-unit*34, cursor+cursorDrop );
+                    }
+
+                    // Largest Army button
+                    if (p.getPlayerColor() != largestArmy) {
+                        Ellipse2D armyButton = new Ellipse2D.Double(width-150-unit*24, cursor+unit*8, unit*9+10, unit*9+10);
+                        graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
+                        graphics.fillOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
+                        hotZones.add(new HotZone(p,ops.LA,armyButton));
+                        graphics.setColor(Color.BLACK);
+                        graphics.drawString( "a", width-150-unit*22, cursor+cursorDrop );
+                    }
+
+                    // Plus box:
+                    graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
+                    Ellipse2D plusButton = new Ellipse2D.Double(width-150-unit*12, cursor+unit*8, unit*9+10, unit*9+10);
+                    graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
+                    Polygon pol = new Polygon();
+                    pol.addPoint(unit*3, 0);
+                    pol.addPoint(unit*4, 0);
+                    pol.addPoint(unit*4, unit*3);
+                    pol.addPoint(unit*7, unit*3);
+                    pol.addPoint(unit*7, unit*4);
+                    pol.addPoint(unit*4, unit*4);
+                    pol.addPoint(unit*4, unit*7);
+                    pol.addPoint(unit*3, unit*7);
+                    pol.addPoint(unit*3, unit*4);
+                    pol.addPoint(0, unit*4);
+                    pol.addPoint(0, unit*3);
+                    pol.addPoint(unit*3, unit*3);
+                    pol.translate((int)(plusButton.getX()+unit*2), (int)(plusButton.getY()+unit*2));
+                    graphics.fillOval((int)plusButton.getX(), (int)plusButton.getY(), (int)plusButton.getWidth(), (int)plusButton.getHeight());
+                    graphics.setColor(Color.BLACK);
+                    graphics.fillPolygon(pol);
+                    hotZones.add(new HotZone(p,ops.INC,plusButton));
+                }
+                // Minus box:
+                if ((winner == null && p.getSettlementVP() > 2) || winner == p) {
+                    graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
+                    Ellipse2D box2 = new Ellipse2D.Double(width-150, cursor+unit*8, unit*9+10, unit*9+10);
+                    graphics.fillOval((int)box2.getX(), (int)box2.getY(), (int)box2.getWidth(), (int)box2.getHeight());
+                    graphics.setColor(Color.BLACK);
+                    graphics.fillRect((int)(box2.getX()+unit*2), (int)(box2.getY()+unit*5), unit*7, unit);
 
 
+                    hotZones.add(new HotZone(p,ops.DEC,box2));
+                }
+
+            }
             cursor += lineHeight;
-        }
-        }
+        }}
 
         if (showHelp && guiObjects.size() == 0) {
             graphics.setColor( Color.WHITE );

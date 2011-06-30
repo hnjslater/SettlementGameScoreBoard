@@ -73,6 +73,10 @@ class Player implements Comparable<Player> {
         }
     }
 
+    public int getSettlementVP() {
+        return vp;
+    }
+
     private int getAchievementsVP() {
         return achievements.size()*2;
     }
