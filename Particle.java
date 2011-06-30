@@ -2,22 +2,29 @@
   import java.awt.Color;
   
   class Particle extends GUIObject {
-        public Particle(int x,int y, Color c) {
+        public Particle(int x,int y, Color c,long birthday) {
             super(x,y,6,6);
-            this.dx = 5.0 - Math.random()*10.0;
-            this.dy = 5.0 - Math.random()*10.0;
+            this.dx = 0.5 - Math.random();
+            this.dy = 0.5 - Math.random();
             this.c = c;
+            this.birthday = birthday;
         }
-        public void paint(Graphics g) {
+        public void paint(Graphics g, long time) {
             g.setColor(c);
-            g.fillOval(x-3,y-3,6,6);
-        }
-        public void tick() {
-            translate((int)Math.round(dx),(int)Math.round(dy));
-            this.dy += 0.1;
+            g.fillOval(getX(time),getY(time),6,6);
         }
         private double dx;
         private double dy;
         private Color c;
+        long birthday;
+        public int getX(long time) {
+            return (int)(x + dx * (time - birthday)); 
+        }
+        public int getY(long time) {
+            double u = dy;
+            double t = time - birthday;
+            double a = 0.0005;
+            return (int)(y + u*t + 0.5*(a*Math.pow(t,2))); 
+        }
     }
 
