@@ -109,26 +109,28 @@ final class ScoreBoard implements GameListener {
 
     public void tickLoop() {
         while (true) {
-            List<GUIObject> toremove = new ArrayList<GUIObject>();
+
             int width = frame.getWidth();
             int height = frame.getHeight();
 
+
+            long time = (new Date()).getTime();
             synchronized(guiObjects) { 
+                List<GUIObject> toremove = new ArrayList<GUIObject>();
                 for (GUIObject p : guiObjects) {
-                    p.tick();
-                    if (p.y > height || p.x < 0 || p.x > width) {
+                    if (p.getY(time) > height || p.getX(time) < 0 || p.getX(time) > width) {
                         toremove.add(p);
                     }
                 }
+                guiObjects.removeAll(toremove);
             }
 
-            guiObjects.removeAll(toremove);
 
-            if (guiObjects.size() < 15 && winner != null) {
+            if (guiObjects.size() < 20  && winner != null) {
                 int startx = (int)(Math.floor(Math.random() * width));
                 int starty = (int)(Math.floor(Math.random() * height));
-                for (int i = 0; i < 40; i++) {
-                    guiObjects.add(new Particle(startx,starty,helper.getGraphicsColor(winner.getPlayerColor())));
+                for (int i = 0; i < 30; i++) {
+                    guiObjects.add(new Particle(startx,starty,helper.getGraphicsColor(winner.getPlayerColor()),time));
                 }
             }
 
@@ -304,9 +306,10 @@ final class ScoreBoard implements GameListener {
             graphics.drawString( helpMessage, 0, height-littleTextDescent-littleTextHeight);
             graphics.drawString( helper.getColorHelp(), 0, height-littleTextDescent);
         }
+        long now = (new Date()).getTime();
         synchronized(guiObjects) { 
             for (GUIObject p : guiObjects) {
-                p.paint(graphics);
+                p.paint(graphics, now);
             }
         }
 
