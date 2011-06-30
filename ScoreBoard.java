@@ -295,23 +295,32 @@ final class ScoreBoard implements GameListener {
                 if (winner == null) {
 
                     // Longest Road button
+
+                    Ellipse2D roadButton = new Ellipse2D.Double(width-150-unit*36, cursor+unit*8, unit*9+12, unit*9+12);
                     if (p.getPlayerColor() != longestRoad) {
-                        Ellipse2D roadButton = new Ellipse2D.Double(width-150-unit*36, cursor+unit*8, unit*9+12, unit*9+12);
                         graphics.fillOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
                         hotZones.add(new HotZone(p,ops.LR,roadButton));
-
                         graphics.setColor(Color.BLACK);
                         graphics.drawString( "r", width-150-unit*34, cursor+cursorDrop );
                     }
+                    else {
+                        graphics.drawOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
+                        hotZones.add(new HotZone(null,ops.LR,roadButton));
+                    }
+                   
 
                     // Largest Army button
+                    Ellipse2D armyButton = new Ellipse2D.Double(width-150-unit*24, cursor+unit*8, unit*9+10, unit*9+10);
+                    graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
                     if (p.getPlayerColor() != largestArmy) {
-                        Ellipse2D armyButton = new Ellipse2D.Double(width-150-unit*24, cursor+unit*8, unit*9+10, unit*9+10);
-                        graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
                         graphics.fillOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
                         hotZones.add(new HotZone(p,ops.LA,armyButton));
                         graphics.setColor(Color.BLACK);
                         graphics.drawString( "a", width-150-unit*22, cursor+cursorDrop );
+                    }
+                    else {
+                        graphics.drawOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
+                        hotZones.add(new HotZone(null,ops.LA,armyButton));
                     }
 
                     // Plus box:
