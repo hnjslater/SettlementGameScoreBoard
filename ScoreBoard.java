@@ -13,6 +13,7 @@ import java.awt.event.MouseListener;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
 import javax.swing.JFrame;
 
 final class ScoreBoard implements GameListener {
@@ -241,7 +242,8 @@ final class ScoreBoard implements GameListener {
 
         // Put the cursor in the right place
         int cursorDrop =  (int)(graphics.getFontMetrics(bigFont).getMaxAscent()) + (lineHeight - bigTextHeight) / 2;;
-        int cursor = hozOffset; 
+        int cursor = hozOffset;
+        synchronized(hotZones) { // otherwise sometimes a click will happen when hotZones is empty
         hotZones.clear();
         for ( Player p : game.getLeaderBoard() ) {
             graphics.setColor( helper.getGraphicsColor(p.getPlayerColor()) );
@@ -265,9 +267,11 @@ final class ScoreBoard implements GameListener {
                 graphics.drawChars( new char[] {helper.getColorChar(p.getPlayerColor())}, 0, 1, width-70, cursor+cursorDrop );
             }
 
+
+            //FIXME all of the following code really....
             // Plus box:
             int unit = lineHeight/21;
-            Rectangle box = new Rectangle(width-150-unit*7-5, cursor+lineHeight/3-5, unit*7+10, unit*7+10);
+            Ellipse2D box = new Ellipse2D.Double(width-150-unit*7-5, cursor+lineHeight/3-5, unit*7+10, unit*7+10);
             Polygon pol = new Polygon();
             pol.addPoint(unit*3,    0);
             pol.addPoint(unit*4,    0);
@@ -282,20 +286,25 @@ final class ScoreBoard implements GameListener {
             pol.addPoint(0,         unit*3);
             pol.addPoint(unit*3,    unit*3);
             pol.translate((int)(box.getX()+5), (int)(box.getY()+5));
+            graphics.fillOval((int)box.getX(), (int)box.getY(), (int)box.getWidth(), (int)box.getHeight());
+            graphics.setColor(Color.BLACK);
             graphics.fillPolygon(pol);
 
-            graphics.drawRect(box.x, box.y, box.width, box.height);
-            hotZones.add(new HotZone(p,ops.INC,box));
 
+            hotZones.add(new HotZone(p,ops.INC,box));
+            graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
             // Minus box:
-            Rectangle box2 = new Rectangle(width-150+10, cursor+lineHeight/3-5, unit*7+10, unit*7+10);
+            Ellipse2D box2 = new Ellipse2D.Double(width-150+10, cursor+lineHeight/3-5, unit*7+10, unit*7+10);
+            graphics.fillOval((int)box2.getX(), (int)box2.getY(), (int)box2.getWidth(), (int)box2.getHeight());
+            graphics.setColor(Color.BLACK);
             graphics.fillRect((int)(box2.getX()+5), (int)(box2.getY()+5+unit*3), unit*7, unit);
 
-            graphics.drawRect(box2.x, box2.y, box2.width, box2.height);
+
             hotZones.add(new HotZone(p,ops.DEC,box2));
 
 
             cursor += lineHeight;
+        }
         }
 
         if (showHelp && guiObjects.size() == 0) {

@@ -14,10 +14,13 @@ class ScoreBoardMouseListener extends MouseAdapter {
         synchronized(hotZones) {
             for (ScoreBoard.HotZone hz : hotZones) {
                 if (hz.zone.contains(me.getPoint())) {
-                    if (hz.operation == ScoreBoard.ops.INC)
+                    if (hz.operation == ScoreBoard.ops.INC) {
                         hz.player.updateVP(+1);
-                    else
+                    }
+                    else {
                         hz.player.updateVP(-1);
+                    }
+                    return;
                 }
 
             }
