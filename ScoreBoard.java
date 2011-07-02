@@ -15,6 +15,8 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import javax.swing.JFrame;
+import java.awt.BasicStroke;
+import java.awt.Stroke;
 
 final class ScoreBoard implements GameListener {
  
@@ -218,8 +220,8 @@ final class ScoreBoard implements GameListener {
 
 
     private synchronized void paint () {
-        int height = frame.getHeight();
-        int width = frame.getWidth();
+        int height = frame.getContentPane().getHeight();
+        int width = frame.getContentPane().getWidth();
         // FIXME a bit iffy if not fullscreen
 
         BufferStrategy bf = frame.getBufferStrategy();
@@ -228,7 +230,7 @@ final class ScoreBoard implements GameListener {
 
         // background
         graphics.setColor( java.awt.Color.BLACK );
-        graphics.fillRect( 0, 0, width,height );
+        graphics.fillRect( 0, 0, frame.getWidth(),frame.getHeight() );
 
         // antialiasing
         ((Graphics2D)graphics).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
@@ -259,8 +261,10 @@ final class ScoreBoard implements GameListener {
         PlayerColor largestArmy = game.getAchievement(Achievement.LargestArmy);
 
         // Put the cursor in the right place
-        int cursorDrop =  (int)(graphics.getFontMetrics(bigFont).getMaxAscent()) + (lineHeight - bigTextHeight) / 2;;
-        int cursor = hozOffset;
+        int cursorDrop =  (int)(graphics.getFontMetrics(bigFont).getMaxAscent()) + (lineHeight - bigTextHeight) / 2;
+
+        //FIXME HACK! to get the height of the title bar.
+        int cursor = hozOffset + (frame.getHeight() - frame.getContentPane().getHeight());
         synchronized(hotZones) { // otherwise sometimes a click will happen when hotZones is empty
         hotZones.clear();
         for ( Player p : game.getLeaderBoard() ) {
@@ -304,7 +308,11 @@ final class ScoreBoard implements GameListener {
                         graphics.drawString( "R", width-150-unit*45, cursor+cursorDrop );
                     }
                     else {
+                        Stroke normal = ((Graphics2D)graphics).getStroke();
+                        Stroke wider = new BasicStroke(4);
+                        ((Graphics2D)graphics).setStroke(wider);
                         graphics.drawOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
+                        ((Graphics2D)graphics).setStroke(normal);
                         hotZones.add(new HotZone(null,ops.LR,roadButton));
                     }
                    
@@ -319,7 +327,11 @@ final class ScoreBoard implements GameListener {
                         graphics.drawString( "A", width-150-unit*29, cursor+cursorDrop );
                     }
                     else {
+                        Stroke normal = ((Graphics2D)graphics).getStroke();
+                        Stroke wider = new BasicStroke(4);
+                        ((Graphics2D)graphics).setStroke(wider);
                         graphics.drawOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
+                        ((Graphics2D)graphics).setStroke(normal);
                         hotZones.add(new HotZone(null,ops.LA,armyButton));
                     }
 

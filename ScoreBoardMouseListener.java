@@ -29,6 +29,7 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
 
     public void mouseClicked(MouseEvent me) {
         synchronized(hotZones) {
+            resetHideCounter();
             for (ScoreBoard.HotZone hz : hotZones) {
                 if (hz.zone.contains(me.getPoint())) {
                     if (hz.operation == ScoreBoard.ops.INC) {
@@ -60,7 +61,7 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
         }
     }
 
-    public void mouseMoved(MouseEvent me) {
+    private void resetHideCounter() {
         synchronized(controlsHider) {
             scoreBoard.setShowMouseControls(true);
             if (controlsHider.getState() != Thread.State.NEW) {
@@ -75,5 +76,9 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
                 controlsHider.start();
             }
         } 
+    }
+
+    public void mouseMoved(MouseEvent me) {
+        resetHideCounter();
     }
 }
