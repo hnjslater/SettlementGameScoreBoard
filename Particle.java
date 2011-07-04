@@ -9,9 +9,10 @@
             this.c = c;
             this.birthday = birthday;
         }
-        public void paint(Graphics g, long time) {
+        public boolean paint(Graphics g, long time) {
             g.setColor(c);
             g.fillOval(getX(time),getY(time),6,6);
+            return true;
         }
         private double dx;
         private double dy;

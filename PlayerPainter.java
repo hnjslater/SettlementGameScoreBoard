@@ -24,7 +24,7 @@ class PlayerPainter extends GUIObject {
         this.game = g;
         this.context = context;
     }
-    public void paint(Graphics graphics, long time) {
+    public boolean paint(Graphics graphics, long time) {
         int cursor = getY(0);
         Player p = player;
 
@@ -123,6 +123,7 @@ class PlayerPainter extends GUIObject {
                     context.hotZones.add(new HotZone(player,HotZone.ops.DEC,box2));
                 }
         }
+        return false;
     }
     public int getX(long time) {
         return 0;

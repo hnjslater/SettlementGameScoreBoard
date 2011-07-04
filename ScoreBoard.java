@@ -37,6 +37,7 @@ final class ScoreBoard implements GameListener {
     private boolean showColorHelp = true;
     private boolean showMouseControls = false;
     private boolean fullScreen = false;
+    private boolean isAnimating = true;
     private Player winner;
     private List<GUIObject> guiObjects;
     private List<HotZone> hotZones;
@@ -111,18 +112,26 @@ final class ScoreBoard implements GameListener {
     public void renderLoop() {
         while (true) {
             paint();
+            // limit framerate if there's no animation currently happening
+            try {
+            if (!isAnimating)
+                Thread.sleep(100);
+            }
+            catch (Exception ex) {
+                // Don't really care if I get woken.
+            }
         }
     }
-
     public void tickLoop() {
         while (true) {
-
+            
             int width = frame.getWidth();
             int height = frame.getHeight();
 
 
             long time = (new Date()).getTime();
             synchronized(guiObjects) { 
+
                 List<GUIObject> toremove = new ArrayList<GUIObject>();
                 for (GUIObject p : guiObjects) {
                     if ((p.getY(time) > height || p.getX(time) < 0 || p.getX(time) > width) && p instanceof Particle) {
@@ -271,17 +280,16 @@ final class ScoreBoard implements GameListener {
         }
         long now = (new Date()).getTime();
         synchronized(guiObjects) { 
+            isAnimating = false;
             synchronized(hotZones) { // otherwise sometimes a click will happen when hotZones is empty
                 hotZones.clear();
                 for (GUIObject p : guiObjects) {
-                    p.paint(graphics, now);
+                    isAnimating |= p.paint(graphics, now);
                 }
             }
         }
-
         graphics.dispose();
         bf.show();
-        System.out.println(guiObjects.size());
     }
 
     public void winnerChanged(GameEvent wce) {

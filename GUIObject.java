@@ -13,7 +13,10 @@ abstract class GUIObject {
         this.w = w;
         this.h = h;
     }
-    public abstract void paint(Graphics g, long time);
+    /** paint graphics
+    * returns true if representation has changed
+    */
+    public abstract boolean paint(Graphics g, long time);
     public abstract int getX(long time);
     public abstract int getY(long time);
 }
