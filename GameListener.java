@@ -1,4 +1,6 @@
 
 public interface GameListener {
-    public void winnerChanged(WinnerChangedEvent e);
+    public void playerAdded(GameEvent e);
+    public void playerRemoved(GameEvent e);
+    public void winnerChanged(GameEvent e);
 }

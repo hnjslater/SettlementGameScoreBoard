@@ -25,9 +25,12 @@ class Game implements PlayerListener {
         Player player = new Player(color, sharedCount);
         player.addPlayerListener(this);
         playersByColor.put(color,player);
+        raisePlayerAddedEvent(new GameEvent(this, player));
     }
     public void removePlayer(PlayerColor color) {
+        Player player = playersByColor.get(color);
         playersByColor.remove(color);
+        raisePlayerRemovedEvent(new GameEvent(this, player));
     }
     public List<Player> getLeaderBoard() {
         List<Player> players = new ArrayList<Player>(this.playersByColor.values());
@@ -87,25 +90,38 @@ class Game implements PlayerListener {
         Player p = pe.getPlayer();
         if (p.getVP() >= 10 && this.winner == null) {
             this.winner = p;
-            raiseWinnerChangedEvent(new WinnerChangedEvent(this,p));
+            raiseWinnerChangedEvent(new GameEvent(this,p));
 
         }
         else if (p.getVP() < 10 && this.winner == p) {
             this.winner = null;
-            raiseWinnerChangedEvent(new WinnerChangedEvent(this,null));
+            raiseWinnerChangedEvent(new GameEvent(this,null));
 
         }
     }
     public void playerRenamed(PlayerEvent pe) {
     }
 
-    public void raiseWinnerChangedEvent(WinnerChangedEvent wce) {
+    private void raiseWinnerChangedEvent(GameEvent wce) {
         synchronized(gameListeners) {
             for (GameListener g : gameListeners) {
                 g.winnerChanged(wce);
             }
         }
-
+    }
+    private void raisePlayerAddedEvent(GameEvent wce) {
+        synchronized(gameListeners) {
+            for (GameListener g : gameListeners) {
+                g.playerAdded(wce);
+            }
+        }
+    }
+    private void raisePlayerRemovedEvent(GameEvent wce) {
+        synchronized(gameListeners) {
+            for (GameListener g : gameListeners) {
+                g.playerRemoved(wce);
+            }
+        }
     }
 }
 
