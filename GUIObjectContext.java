@@ -1,4 +1,5 @@
 import java.util.List;
+import java.awt.Font;
 
 /** Encapsulates all the context ScoreBoard shares with its PlayerPainters */
 class GUIObjectContext {
@@ -11,4 +12,5 @@ class GUIObjectContext {
     int frameHeight;
     Player editing;
     boolean showMouseButtons;
+    Font bigFont;
 }

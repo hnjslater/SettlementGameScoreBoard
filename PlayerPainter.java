@@ -4,48 +4,53 @@ import java.awt.Polygon;
 import java.awt.Stroke;
 import java.awt.BasicStroke;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Color;
 import java.awt.geom.*;
 import java.awt.Shape;
 import java.util.List;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 
 
 
-class PlayerPainter extends GUIObject {
+class PlayerPainter extends GUIObject implements PlayerListener {
     public Player player;
     private Game game;
     private ScoreBoardHelper helper = new ScoreBoardHelper();
-    private Font bigFont = new Font( "Helvectica", 0, 64 );
     private GUIObjectContext context;
+    private BufferedImage playerName;
+    Boolean playerNameDirty = true;
+    final int margin = 25;
+    int letterWidth;
+
 
     public PlayerPainter(Player p, Game g, GUIObjectContext context) {
         super(0,0,0,0);
         this.player = p;
         this.game = g;
         this.context = context;
+        this.playerName = new BufferedImage(1,1,BufferedImage.TYPE_INT_RGB);
+        p.addPlayerListener(this);
     }
+
+    // GUIObject methods ///////////////////////////////////////////
     public boolean paint(Graphics graphics, long time) {
+        if (playerNameDirty) {
+            updateImage();
+        }
         int cursor = getY(0);
         Player p = player;
 
-        graphics.setFont( bigFont );
+        graphics.setFont( context.bigFont );
 
         graphics.setColor( helper.getGraphicsColor(player.getPlayerColor()) );
-        graphics.drawString( new Integer( player.getVP()).toString(), 50, cursor+context.cursorDrop );
-        String displayName = player.getName();
 
-        //Hacky cursor
-        if (context.editing == p)
-            displayName += "|";
 
-        // Achievements
-        if (player.getAchievements().contains(Achievement.LongestRoad))
-            displayName += " (LR)";
-        if (player.getAchievements().contains(Achievement.LargestArmy))
-            displayName += " (LA)";
 
-        graphics.drawString( displayName, 50+context.maxScoreWidth, cursor+context.cursorDrop );
-        graphics.drawChars( new char[] {helper.getColorChar(player.getPlayerColor())}, 0, 1, context.frameWidth-70, cursor+context.cursorDrop );
+
+        graphics.drawImage(playerName,0,cursor + (context.lineHeight - playerName.getHeight()) /2,null);
+        graphics.drawChars( new char[] {helper.getColorChar(player.getPlayerColor())}, 0, 1, context.frameWidth-letterWidth-margin, cursor+context.cursorDrop );
 
         if (context.showMouseButtons) {
                 int unit = context.lineHeight/23;
@@ -134,4 +139,65 @@ class PlayerPainter extends GUIObject {
     public void setY(int Y) {
         this.y = Y;
     }
+    public void invalidate() {
+        synchronized(playerNameDirty) {
+            playerNameDirty = true;
+        }
+    }
+
+    /// Player Listener methods
+
+    public void playerVPChanged(PlayerEvent pe) {
+        synchronized(playerNameDirty) {
+            playerNameDirty = true;
+        }
+    }
+
+    public void playerRenamed(PlayerEvent pe) {
+        synchronized(playerNameDirty) {
+            playerNameDirty = true;
+        }
+    }
+    
+    // private methods
+    // FIXME needs to know when the font's changed...
+    private void updateImage() {
+        synchronized(playerNameDirty) {
+            String displayName = player.getName();
+            //Hacky cursor
+            if (context.editing == player)
+                displayName += "|";
+
+            // Achievements
+            if (player.getAchievements().contains(Achievement.LongestRoad))
+                displayName += " (LR)";
+            if (player.getAchievements().contains(Achievement.LargestArmy))
+                displayName += " (LA)";
+
+            Graphics2D graphics = playerName.createGraphics();
+            FontMetrics metrics = graphics.getFontMetrics(context.bigFont);
+            int maxWidth = metrics.stringWidth(displayName);
+            letterWidth = metrics.charWidth(helper.getColorChar(player.getPlayerColor()));
+            int maxDescent = metrics.getMaxAscent();
+            int maxHeight = maxDescent + metrics.getMaxDescent();
+            graphics.dispose();
+            playerName = new BufferedImage(maxWidth + context.maxScoreWidth + margin, maxHeight, BufferedImage.TYPE_INT_RGB);
+            graphics = playerName.createGraphics();
+
+            graphics.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                         java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            graphics.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+                         java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+
+            graphics.setColor( helper.getGraphicsColor(player.getPlayerColor()) );
+            graphics.setFont(context.bigFont);
+
+
+
+            graphics.drawString( new Integer( player.getVP()).toString(), margin, maxDescent);
+            graphics.drawString(displayName, context.maxScoreWidth + margin, maxDescent);
+            playerNameDirty = false;
+        }
+    }
+    
 }

@@ -4,6 +4,7 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.image.BufferStrategy;
 import java.awt.event.KeyListener;
 import javax.swing.event.MouseInputListener;
@@ -96,17 +97,27 @@ final class ScoreBoard implements GameListener {
 
     public void setState(ScoreBoardState state) {
         this.helpMessage = helper.getHelpMessage(state);
+
+        // hacky way to tell the PlayerPainter that it's player is no longer being edited
+        Player was_editing = GUIContext.editing;
         GUIContext.editing = null;
+        if (was_editing != null)
+        was_editing.setName(was_editing.getName());
     }
 
     public void setStateAchievement(Achievement achievement) {
         this.helpMessage = "Enter Color of player who has the " + achievement.toString() + ".";
+        // hacky way to tell the PlayerPainter that it's player is no longer being edited
+        Player was_editing = GUIContext.editing;
         GUIContext.editing = null;
+        if (was_editing != null)
+        was_editing.setName(was_editing.getName());
     }
 
     public void setStateEditing(PlayerColor playerColor) {
         this.helpMessage = "Editing " + playerColor.toString() + ".";
         GUIContext.editing = game.getPlayer(playerColor);
+        GUIContext.editing.setName(GUIContext.editing.getName());
     }
 
     public void renderLoop() {
@@ -248,36 +259,39 @@ final class ScoreBoard implements GameListener {
         ((Graphics2D)graphics).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                          RenderingHints.VALUE_ANTIALIAS_ON);
 
-
-        int littleTextHeight = (int)(graphics.getFontMetrics(littleFont).getMaxCharBounds(graphics).getHeight());
-        int littleTextDescent = (int)(graphics.getFontMetrics(littleFont).getMaxDescent());
-        if (game.getNumberOfPlayers() > 0) {
-            if (showHelp) {
-                GUIContext.lineHeight = (height - (littleTextHeight * 2)) / (game.getNumberOfPlayers());
-            }
-            else {
-                GUIContext.lineHeight = height / game.getNumberOfPlayers();
-            }
-        }
-        // FIXME do this in the resize event.
-        if (GUIContext.frameWidth != frame.getWidth() || GUIContext.frameHeight != frame.getHeight()) {
-
-            GUIContext.bigTextHeight =  (int)(graphics.getFontMetrics(bigFont).getMaxCharBounds(graphics).getHeight());
-
-
-            GUIContext.maxScoreWidth = graphics.getFontMetrics(bigFont).stringWidth("00 "); 
-            GUIContext.cursorDrop =  (int)(graphics.getFontMetrics(bigFont).getMaxAscent()) + (GUIContext.lineHeight - GUIContext.bigTextHeight) / 2;
-            GUIContext.frameWidth = frame.getWidth();
-            GUIContext.hotZones = hotZones;
-            GUIContext.showMouseButtons = getShowMouseControls();
-        }
-
         if (showHelp) {
+            int littleTextHeight = (int)(graphics.getFontMetrics(littleFont).getMaxCharBounds(graphics).getHeight());
+            int littleTextDescent = (int)(graphics.getFontMetrics(littleFont).getMaxDescent());
+            GUIContext.lineHeight = (height - (littleTextHeight * 2)) / (game.getNumberOfPlayers());
             graphics.setColor( Color.WHITE );
             graphics.setFont(littleFont);
             graphics.drawString( helpMessage, 0, height-littleTextDescent-littleTextHeight);
             graphics.drawString( helper.getColorHelp(), 0, height-littleTextDescent);
+            graphics.setFont(bigFont);
         }
+        else {
+            GUIContext.lineHeight = height / game.getNumberOfPlayers();
+        }
+
+        // FIXME do this in the resize event.
+        if (GUIContext.frameWidth != frame.getWidth() || GUIContext.frameHeight != frame.getHeight()) {
+
+            GUIContext.bigTextHeight =  (int)(graphics.getFontMetrics(bigFont).getMaxCharBounds(graphics).getHeight());
+            
+            bigFont = bigFont.deriveFont(60f);
+            FontMetrics oldBigFontMetrics = graphics.getFontMetrics(bigFont);
+            float ratio = (GUIContext.lineHeight * 0.5f) / (oldBigFontMetrics.getHeight());
+            bigFont = bigFont.deriveFont(ratio * bigFont.getSize());
+            GUIContext.bigFont = bigFont;
+            GUIContext.maxScoreWidth = graphics.getFontMetrics(bigFont).stringWidth("10 "); 
+            GUIContext.cursorDrop =  (int)(graphics.getFontMetrics(bigFont).getMaxAscent()) + (GUIContext.lineHeight - GUIContext.bigTextHeight) / 2;
+            GUIContext.frameWidth = frame.getWidth();
+            GUIContext.frameHeight = frame.getHeight();
+
+            GUIContext.hotZones = hotZones;
+            GUIContext.showMouseButtons = getShowMouseControls();
+        }
+
         long now = (new Date()).getTime();
         synchronized(guiObjects) { 
             isAnimating = false;
@@ -297,11 +311,14 @@ final class ScoreBoard implements GameListener {
     }
 
     public void playerRemoved(GameEvent e) {
+        
         PlayerPainter toRemove = null;
         synchronized(guiObjects) {
+            GUIContext.frameWidth=0;
             for (GUIObject o : guiObjects) {
                 if (o instanceof PlayerPainter && ((PlayerPainter)o).player.equals(e.getPlayer()))
                     toRemove = (PlayerPainter)o;
+                o.invalidate();
             }
         }
         if (toRemove != null) {
@@ -311,6 +328,12 @@ final class ScoreBoard implements GameListener {
 
     public void playerAdded(GameEvent e) {
         guiObjects.add(new PlayerPainter(e.getPlayer(), game, GUIContext));
+        synchronized(guiObjects) {
+            GUIContext.frameWidth=0;
+            for (GUIObject o : guiObjects) {
+                o.invalidate();
+            }
+        }
     }
        
 }

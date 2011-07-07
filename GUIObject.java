@@ -19,4 +19,6 @@ abstract class GUIObject {
     public abstract boolean paint(Graphics g, long time);
     public abstract int getX(long time);
     public abstract int getY(long time);
+    public void invalidate() {
+    }
 }
