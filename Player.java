@@ -22,6 +22,7 @@ class Player implements Comparable<Player> {
     private Set<Achievement> achievements;
     private String name = "";
     private Integer vp;
+    private Object vp_lock;
     private PlayerColor color;
     private List<PlayerListener> playerListeners;
     private AtomicInteger sharedCount;
@@ -33,6 +34,7 @@ class Player implements Comparable<Player> {
         this.playerListeners = Collections.synchronizedList(new ArrayList<PlayerListener>());
         this.sharedCount = sharedCount;
         this.vp = 2;
+        this.vp_lock = new Object();
         resetName();
     }
 
@@ -49,7 +51,7 @@ class Player implements Comparable<Player> {
 
     /** Updates the this.vp and vp_times (unless VP == -1). */ 
     public void updateVP(int vp_delta) {
-        synchronized(vp) {
+        synchronized(vp_lock) {
             this.vp += vp_delta;
             if (getVP() < 2) {
                 this.vp = 2;
@@ -68,7 +70,7 @@ class Player implements Comparable<Player> {
     }
 
     public int getVP() {
-        synchronized(vp) {
+        synchronized(vp_lock) {
             return vp + getAchievementsVP();
         }
     }
