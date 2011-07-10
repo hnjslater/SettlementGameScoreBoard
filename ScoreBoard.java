@@ -42,7 +42,7 @@ final class ScoreBoard implements GameListener {
     private Player winner;
     private List<GUIObject> guiObjects;
     private List<HotZone> hotZones;
-    private GUIObjectContext GUIContext;
+    private PlayerPainterFactory factory;
  
    
 
@@ -53,11 +53,11 @@ final class ScoreBoard implements GameListener {
 
     public ScoreBoard(Game game) {
         guiObjects = Collections.synchronizedList(new LinkedList<GUIObject>());
-        GUIContext = new GUIObjectContext();
+        this.factory = new PlayerPainterFactory();
 
         this.game = game;
         for (Player player : game.getLeaderBoard()) {
-            guiObjects.add(new PlayerPainter(player, game, GUIContext));
+            guiObjects.add(factory.getPainter(player, game));
         }
         game.addGameListener(this);
         this.helpMessage = helper.getHelpMessage(ScoreBoardState.DEFAULT);
@@ -65,6 +65,8 @@ final class ScoreBoard implements GameListener {
 
         this.hotZones = Collections.synchronizedList(new LinkedList<HotZone>()); 
         this.mouseController = new ScoreBoardMouseListener(this,game,hotZones);
+
+
 
         toggleFullScreen();
 
@@ -88,7 +90,11 @@ final class ScoreBoard implements GameListener {
     }
 
     public void setShowMouseControls(boolean showMouseControls) {
-        this.showMouseControls = showMouseControls;
+        synchronized(guiObjects) {
+            for (GUIObject o : guiObjects) {
+                o.setShowMouseAffordances(showMouseControls);
+            }
+        }
     }
 
     public boolean getShowMouseControls() {
@@ -97,27 +103,36 @@ final class ScoreBoard implements GameListener {
 
     public void setState(ScoreBoardState state) {
         this.helpMessage = helper.getHelpMessage(state);
-
-        // hacky way to tell the PlayerPainter that it's player is no longer being edited
-        Player was_editing = GUIContext.editing;
-        GUIContext.editing = null;
-        if (was_editing != null)
-        was_editing.setName(was_editing.getName());
+        finishEditing();
     }
 
     public void setStateAchievement(Achievement achievement) {
         this.helpMessage = "Enter Color of player who has the " + achievement.toString() + ".";
-        // hacky way to tell the PlayerPainter that it's player is no longer being edited
-        Player was_editing = GUIContext.editing;
-        GUIContext.editing = null;
-        if (was_editing != null)
-        was_editing.setName(was_editing.getName());
+        finishEditing();
     }
 
     public void setStateEditing(PlayerColor playerColor) {
         this.helpMessage = "Editing " + playerColor.toString() + ".";
-        GUIContext.editing = game.getPlayer(playerColor);
-        GUIContext.editing.setName(GUIContext.editing.getName());
+
+        PlayerPainter painter = null;
+        synchronized(guiObjects) {
+            for (GUIObject o : guiObjects) {
+                if (o instanceof PlayerPainter && ((PlayerPainter)o).player.getPlayerColor() ==  playerColor) {
+                    painter = (PlayerPainter)o;
+                }
+            }
+        }
+        painter.setEditing(true);
+    }
+
+    private void finishEditing() {
+        synchronized(guiObjects) {
+            for (GUIObject o : guiObjects) {
+                if (o instanceof PlayerPainter) {
+                    ((PlayerPainter)o).setEditing(false);
+                }
+            }
+        }
     }
 
     public void renderLoop() {
@@ -235,14 +250,8 @@ final class ScoreBoard implements GameListener {
 
 
     private synchronized void paint () {
-        int height = frame.getContentPane().getHeight();
-        int width = frame.getContentPane().getWidth();
-
-
         BufferStrategy bf = frame.getBufferStrategy();
         Graphics graphics = bf.getDrawGraphics();
-
-
 
         // background
         graphics.setColor( java.awt.Color.BLACK );
@@ -250,7 +259,7 @@ final class ScoreBoard implements GameListener {
 
         // FIXME a bit iffy if not fullscreen
         if (!fullScreen) {
-            graphics.translate(0, frame.getHeight() - height);
+            graphics.translate(0, frame.getHeight() - frame.getContentPane().getHeight());
         }
 
         // antialiasing
@@ -259,46 +268,16 @@ final class ScoreBoard implements GameListener {
         ((Graphics2D)graphics).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                          RenderingHints.VALUE_ANTIALIAS_ON);
 
-        if (showHelp) {
-            int littleTextHeight = (int)(graphics.getFontMetrics(littleFont).getMaxCharBounds(graphics).getHeight());
-            int littleTextDescent = (int)(graphics.getFontMetrics(littleFont).getMaxDescent());
-            GUIContext.lineHeight = (height - (littleTextHeight * 2)) / (game.getNumberOfPlayers());
-            graphics.setColor( Color.WHITE );
-            graphics.setFont(littleFont);
-            graphics.drawString( helpMessage, 0, height-littleTextDescent-littleTextHeight);
-            graphics.drawString( helper.getColorHelp(), 0, height-littleTextDescent);
-            graphics.setFont(bigFont);
-        }
-        else {
-            GUIContext.lineHeight = height / game.getNumberOfPlayers();
-        }
-
-        // FIXME do this in the resize event.
-        if (GUIContext.frameWidth != frame.getWidth() || GUIContext.frameHeight != frame.getHeight()) {
-
-            GUIContext.bigTextHeight =  (int)(graphics.getFontMetrics(bigFont).getMaxCharBounds(graphics).getHeight());
-            
-            bigFont = bigFont.deriveFont(60f);
-            FontMetrics oldBigFontMetrics = graphics.getFontMetrics(bigFont);
-            float ratio = (GUIContext.lineHeight * 0.5f) / (oldBigFontMetrics.getHeight());
-            bigFont = bigFont.deriveFont(ratio * bigFont.getSize());
-            GUIContext.bigFont = bigFont;
-            GUIContext.maxScoreWidth = graphics.getFontMetrics(bigFont).stringWidth("10 "); 
-            GUIContext.cursorDrop =  (int)(graphics.getFontMetrics(bigFont).getMaxAscent()) + (GUIContext.lineHeight - GUIContext.bigTextHeight) / 2;
-            GUIContext.frameWidth = frame.getWidth();
-            GUIContext.frameHeight = frame.getHeight();
-
-            GUIContext.hotZones = hotZones;
-            GUIContext.showMouseButtons = getShowMouseControls();
-        }
+        graphics.setFont(bigFont);
 
         long now = (new Date()).getTime();
+
         synchronized(guiObjects) { 
             isAnimating = false;
             synchronized(hotZones) { // otherwise sometimes a click will happen when hotZones is empty
                 hotZones.clear();
                 for (GUIObject p : guiObjects) {
-                    isAnimating |= p.paint(graphics, now);
+                    isAnimating |= p.paint(graphics, now, frame.getWidth(), frame.getHeight(), hotZones);
                 }
             }
         }
@@ -311,14 +290,16 @@ final class ScoreBoard implements GameListener {
     }
 
     public void playerRemoved(GameEvent e) {
-        
         PlayerPainter toRemove = null;
         synchronized(guiObjects) {
-            GUIContext.frameWidth=0;
             for (GUIObject o : guiObjects) {
-                if (o instanceof PlayerPainter && ((PlayerPainter)o).player.equals(e.getPlayer()))
+                if (o instanceof PlayerPainter && ((PlayerPainter)o).player.equals(e.getPlayer())) {
                     toRemove = (PlayerPainter)o;
-                o.invalidate();
+                }
+                else {
+                    // if it's the painter we're looking for it'll still need to redraw itself
+                    o.invalidate();
+                }
             }
         }
         if (toRemove != null) {
@@ -327,9 +308,8 @@ final class ScoreBoard implements GameListener {
     }
 
     public void playerAdded(GameEvent e) {
-        guiObjects.add(new PlayerPainter(e.getPlayer(), game, GUIContext));
+        guiObjects.add(factory.getPainter(e.getPlayer(), game));
         synchronized(guiObjects) {
-            GUIContext.frameWidth=0;
             for (GUIObject o : guiObjects) {
                 o.invalidate();
             }

@@ -1,5 +1,6 @@
   import java.awt.Graphics;
   import java.awt.Color;
+  import java.util.List;
   
   class Particle extends GUIObject {
         public Particle(int x,int y, Color c,long birthday) {
@@ -9,7 +10,7 @@
             this.c = c;
             this.birthday = birthday;
         }
-        public boolean paint(Graphics g, long time) {
+        public boolean paint(Graphics g, long time, int width, int height, List<HotZone> hotZones) {
             g.setColor(c);
             g.fillOval(getX(time),getY(time),6,6);
             return true;

@@ -18,52 +18,59 @@ class PlayerPainter extends GUIObject implements PlayerListener {
     public Player player;
     private Game game;
     private ScoreBoardHelper helper = new ScoreBoardHelper();
-    private GUIObjectContext context;
     private BufferedImage playerName;
     Boolean playerNameDirty = true;
     final int margin = 25;
     int letterWidth;
+    int lineHeight;
+    private PlayerPainterFontHelper paintHelper;
+    private boolean editing;
+    private int frameWidth;
+    private int frameHeight;
 
-
-    public PlayerPainter(Player p, Game g, GUIObjectContext context) {
+    public PlayerPainter(Player p, Game g, PlayerPainterFontHelper paintHelper) {
         super(0,0,0,0);
         this.player = p;
         this.game = g;
-        this.context = context;
         this.playerName = new BufferedImage(1,1,BufferedImage.TYPE_INT_RGB);
+        this.paintHelper = paintHelper;
         p.addPlayerListener(this);
     }
 
     // GUIObject methods ///////////////////////////////////////////
-    public boolean paint(Graphics graphics, long time) {
-        if (playerNameDirty) {
-            updateImage();
+    public boolean paint(Graphics graphics, long time, int frameWidth, int frameHeight, List<HotZone> hotZones) {
+        if (game.getNumberOfPlayers() < 3)
+            lineHeight = frameHeight / 3;
+        else
+            lineHeight = frameHeight / game.getNumberOfPlayers();
+
+        boolean changed = paintHelper.setProperties(graphics, frameWidth, frameHeight, lineHeight);
+
+        if (playerNameDirty || changed) {
+            updateImage(graphics.getFont());
         }
         int cursor = getY(0);
         Player p = player;
-
-        graphics.setFont( context.bigFont );
-
         graphics.setColor( helper.getGraphicsColor(player.getPlayerColor()) );
 
 
 
 
-        graphics.drawImage(playerName,0,cursor + (context.lineHeight - playerName.getHeight()) /2,null);
-        graphics.drawChars( new char[] {helper.getColorChar(player.getPlayerColor())}, 0, 1, context.frameWidth-letterWidth-margin, cursor+context.cursorDrop );
+        graphics.drawImage(playerName,0,cursor + (lineHeight - playerName.getHeight()) /2,null);
+        graphics.drawChars( new char[] {helper.getColorChar(player.getPlayerColor())}, 0, 1, frameWidth-letterWidth-margin, cursor+paintHelper.cursorDrop );
 
-        if (context.showMouseButtons) {
-                int unit = context.lineHeight/23;
+        if (showMouseAffordances) {
+                int unit = lineHeight/23;
 
                 if (game.getWinner() == null) {
                     // Longest Road button
 
-                    Ellipse2D roadButton = new Ellipse2D.Double(context.frameWidth-150-unit*48, cursor+unit*6, unit*15, unit*15);
+                    Ellipse2D roadButton = new Ellipse2D.Double(frameWidth-150-unit*48, cursor+unit*6, unit*15, unit*15);
                     if (!player.getAchievements().contains(Achievement.LongestRoad)) {
                         graphics.fillOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
-                        context.hotZones.add(new HotZone(p,HotZone.ops.LR,roadButton));
+                        hotZones.add(new HotZone(p,HotZone.ops.LR,roadButton));
                         graphics.setColor(Color.BLACK);
-                        graphics.drawString( "R", context.frameWidth-150-unit*45, cursor+context.cursorDrop );
+                        graphics.drawString( "R", frameWidth-150-unit*45, cursor+paintHelper.cursorDrop );
                     }
                     else {
                         Stroke normal = ((Graphics2D)graphics).getStroke();
@@ -71,18 +78,18 @@ class PlayerPainter extends GUIObject implements PlayerListener {
                         ((Graphics2D)graphics).setStroke(wider);
                         graphics.drawOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
                         ((Graphics2D)graphics).setStroke(normal);
-                        context.hotZones.add(new HotZone(null,HotZone.ops.LR,roadButton));
+                        hotZones.add(new HotZone(null,HotZone.ops.LR,roadButton));
                     }
                    
 
                     // Largest Army button
-                    Ellipse2D armyButton = new Ellipse2D.Double(context.frameWidth-150-unit*32, cursor+unit*6, unit*15, unit*15);
+                    Ellipse2D armyButton = new Ellipse2D.Double(frameWidth-150-unit*32, cursor+unit*6, unit*15, unit*15);
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
                     if (!player.getAchievements().contains(Achievement.LargestArmy)) {
                         graphics.fillOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
-                        context.hotZones.add(new HotZone(p,HotZone.ops.LA,armyButton));
+                        hotZones.add(new HotZone(p,HotZone.ops.LA,armyButton));
                         graphics.setColor(Color.BLACK);
-                        graphics.drawString( "A", context.frameWidth-150-unit*29, cursor+context.cursorDrop );
+                        graphics.drawString( "A", frameWidth-150-unit*29, cursor+paintHelper.cursorDrop );
                     }
                     else {
                         Stroke normal = ((Graphics2D)graphics).getStroke();
@@ -90,12 +97,12 @@ class PlayerPainter extends GUIObject implements PlayerListener {
                         ((Graphics2D)graphics).setStroke(wider);
                         graphics.drawOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
                         ((Graphics2D)graphics).setStroke(normal);
-                        context.hotZones.add(new HotZone(null,HotZone.ops.LA,armyButton));
+                        hotZones.add(new HotZone(null,HotZone.ops.LA,armyButton));
                     }
 
                     // Plus box:
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
-                    Ellipse2D plusButton = new Ellipse2D.Double(context.frameWidth-150-unit*16, cursor+unit*6, unit*15, unit*15);
+                    Ellipse2D plusButton = new Ellipse2D.Double(frameWidth-150-unit*16, cursor+unit*6, unit*15, unit*15);
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
                     Polygon pol = new Polygon();
                     pol.addPoint(unit*3, 0);
@@ -114,18 +121,18 @@ class PlayerPainter extends GUIObject implements PlayerListener {
                     graphics.fillOval((int)plusButton.getX(), (int)plusButton.getY(), (int)plusButton.getWidth(), (int)plusButton.getHeight());
                     graphics.setColor(Color.BLACK);
                     graphics.fillPolygon(pol);
-                    context.hotZones.add(new HotZone(p,HotZone.ops.INC,plusButton));
+                    hotZones.add(new HotZone(p,HotZone.ops.INC,plusButton));
                 }
                 // Minus box:
                 if ((game.getWinner() == null && p.getSettlementVP() > 2) || game.getWinner() == p) {
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
-                    Ellipse2D box2 = new Ellipse2D.Double(context.frameWidth-150, cursor+unit*6, unit*15, unit*15);
+                    Ellipse2D box2 = new Ellipse2D.Double(frameWidth-150, cursor+unit*6, unit*15, unit*15);
                     graphics.fillOval((int)box2.getX(), (int)box2.getY(), (int)box2.getWidth(), (int)box2.getHeight());
                     graphics.setColor(Color.BLACK);
                     graphics.fillRect((int)(box2.getX()+unit*4), (int)(box2.getY()+unit*7), unit*7, unit);
 
 
-                    context.hotZones.add(new HotZone(player,HotZone.ops.DEC,box2));
+                    hotZones.add(new HotZone(player,HotZone.ops.DEC,box2));
                 }
         }
         return false;
@@ -134,7 +141,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
         return 0;
     }
     public int getY(long time) {
-        return (context.lineHeight * game.getLeaderBoard().lastIndexOf(player)); 
+        return (lineHeight * game.getLeaderBoard().lastIndexOf(player)); 
     }
     public void setY(int Y) {
         this.y = Y;
@@ -143,6 +150,10 @@ class PlayerPainter extends GUIObject implements PlayerListener {
         synchronized(playerNameDirty) {
             playerNameDirty = true;
         }
+    }
+    public void setEditing(boolean editing) {
+        this.editing = editing;
+        invalidate();
     }
 
     /// Player Listener methods
@@ -161,11 +172,11 @@ class PlayerPainter extends GUIObject implements PlayerListener {
     
     // private methods
     // FIXME needs to know when the font's changed...
-    private void updateImage() {
+    private void updateImage(Font bigFont) {
         synchronized(playerNameDirty) {
             String displayName = player.getName();
             //Hacky cursor
-            if (context.editing == player)
+            if (editing)
                 displayName += "|";
 
             // Achievements
@@ -175,13 +186,14 @@ class PlayerPainter extends GUIObject implements PlayerListener {
                 displayName += " (LA)";
 
             Graphics2D graphics = playerName.createGraphics();
-            FontMetrics metrics = graphics.getFontMetrics(context.bigFont);
+            graphics.setFont(bigFont);
+            FontMetrics metrics = graphics.getFontMetrics();
             int maxWidth = metrics.stringWidth(displayName);
             letterWidth = metrics.charWidth(helper.getColorChar(player.getPlayerColor()));
             int maxDescent = metrics.getMaxAscent();
             int maxHeight = maxDescent + metrics.getMaxDescent();
             graphics.dispose();
-            playerName = new BufferedImage(maxWidth + context.maxScoreWidth + margin, maxHeight, BufferedImage.TYPE_INT_RGB);
+            playerName = new BufferedImage(maxWidth + paintHelper.maxScoreWidth + margin, maxHeight, BufferedImage.TYPE_INT_RGB);
             graphics = playerName.createGraphics();
 
             graphics.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
@@ -190,14 +202,10 @@ class PlayerPainter extends GUIObject implements PlayerListener {
                          java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
 
             graphics.setColor( helper.getGraphicsColor(player.getPlayerColor()) );
-            graphics.setFont(context.bigFont);
-
-
-
+            graphics.setFont(bigFont);
             graphics.drawString( new Integer( player.getVP()).toString(), margin, maxDescent);
-            graphics.drawString(displayName, context.maxScoreWidth + margin, maxDescent);
+            graphics.drawString(displayName, paintHelper.maxScoreWidth + margin, maxDescent);
             playerNameDirty = false;
         }
     }
-    
 }
