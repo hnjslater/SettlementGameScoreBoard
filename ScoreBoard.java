@@ -223,12 +223,13 @@ final class ScoreBoard implements GameListener {
 
         frame = new JFrame(gs.getDefaultConfiguration());
         frame.addKeyListener(controller);
-        frame.addMouseListener(mouseController);
-        frame.addMouseMotionListener(mouseController);
+
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.validate();
 
         if (gs.isFullScreenSupported() && !fullScreen) {
+            frame.addMouseListener(mouseController);
+            frame.addMouseMotionListener(mouseController);
             frame.setUndecorated(true);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
@@ -237,11 +238,14 @@ final class ScoreBoard implements GameListener {
             fullScreen = true;
         }
         else {
+            frame.getContentPane().addMouseListener(mouseController);
+            frame.getContentPane().addMouseMotionListener(mouseController);
             frame.setSize(800,600);
             frame.setResizable(true);
             frame.setIgnoreRepaint(false);
             frame.setUndecorated(false);
             frame.setVisible(true);
+
 
             fullScreen = false;
         }

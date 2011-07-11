@@ -1,7 +1,6 @@
 class Main {
 
-public static void main(String args[])  throws Exception {
-
+public static void main(String args[]) { 
         Game game = new Game();
         game.addPlayer(PlayerColor.Blue);
         game.addPlayer(PlayerColor.Orange);
@@ -13,8 +12,13 @@ public static void main(String args[])  throws Exception {
         ScoreBoard scoreBoard = new ScoreBoard(game);
 
         ScoreBoardKeyListener scoreBoardController = new ScoreBoardKeyListener(game,scoreBoard);
-
+        try {
         scoreBoard.run();
+        }
+        catch (InterruptedException ex) {
+            System.err.println(ex.getMessage());
+            System.exit(1);
+        }
     } 
 
 }
