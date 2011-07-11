@@ -28,8 +28,8 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
     }
 
     public void mouseClicked(MouseEvent me) {
+        resetHideCounter();
         synchronized(hotZones) {
-            resetHideCounter();
             for (HotZone hz : hotZones) {
                 if (hz.zone.contains(me.getPoint())) {
                     if (hz.operation == HotZone.ops.INC) {
