@@ -25,11 +25,13 @@ public class PlayerPainterFontHelper {
     private Font font;
     private int height;
     private int width;
-    private int lineHeight;
+    int lineHeight;
 
     int bigTextHeight;
     int maxScoreWidth;
-    int cursorDrop;    
+    int cursorDrop;
+    int widthOfA;
+    int widthOfR;
 
     public boolean setProperties(Graphics graphics, int width, int height, int lineHeight) {
         if (!graphics.getFont().equals(this.font) || this.height != height || this.width != width || this.lineHeight != lineHeight) {
@@ -45,11 +47,15 @@ public class PlayerPainterFontHelper {
             float ratio = (lineHeight * 0.5f) / (oldBigFontMetrics.getHeight());
             font = font.deriveFont(ratio * font.getSize());
             graphics.setFont(font);
+            FontMetrics metrics = graphics.getFontMetrics(font);
 
             // export the useful values
-            this.bigTextHeight =  (int)(graphics.getFontMetrics(font).getMaxCharBounds(graphics).getHeight());
-            this.maxScoreWidth = graphics.getFontMetrics(font).stringWidth("10 "); 
-            this.cursorDrop = (int)(graphics.getFontMetrics(font).getMaxAscent()) + (lineHeight - bigTextHeight) / 2;
+            this.bigTextHeight =  (int)(metrics.getMaxCharBounds(graphics).getHeight());
+            this.maxScoreWidth = metrics.stringWidth("10 "); 
+            this.cursorDrop = (int)(metrics.getMaxAscent()) + (lineHeight - bigTextHeight) / 2;
+            this.widthOfA = metrics.stringWidth("A");
+            this.widthOfR = metrics.stringWidth("R");
+
 
             return false;
         }

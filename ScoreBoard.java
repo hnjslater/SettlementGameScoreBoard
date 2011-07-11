@@ -151,8 +151,8 @@ final class ScoreBoard implements GameListener {
     public void tickLoop() {
         while (true) {
             
-            int width = frame.getWidth();
-            int height = frame.getHeight();
+            int width = frame.getContentPane().getWidth();
+            int height = frame.getContentPane().getHeight();
 
 
             long time = (new Date()).getTime();
@@ -277,7 +277,7 @@ final class ScoreBoard implements GameListener {
             synchronized(hotZones) { // otherwise sometimes a click will happen when hotZones is empty
                 hotZones.clear();
                 for (GUIObject p : guiObjects) {
-                    isAnimating |= p.paint(graphics, now, frame.getWidth(), frame.getHeight(), hotZones);
+                    isAnimating |= p.paint(graphics, now, frame.getContentPane().getWidth(), frame.getContentPane().getHeight(), hotZones);
                 }
             }
         }

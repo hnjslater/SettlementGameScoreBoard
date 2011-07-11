@@ -60,17 +60,17 @@ class PlayerPainter extends GUIObject implements PlayerListener {
         graphics.drawChars( new char[] {helper.getColorChar(player.getPlayerColor())}, 0, 1, frameWidth-letterWidth-margin, cursor+paintHelper.cursorDrop );
 
         if (showMouseAffordances) {
-                int unit = lineHeight/23;
+                float unit = lineHeight/23f;
 
                 if (game.getWinner() == null) {
                     // Longest Road button
 
-                    Ellipse2D roadButton = new Ellipse2D.Double(frameWidth-150-unit*48, cursor+unit*6, unit*15, unit*15);
+                    Ellipse2D roadButton = new Ellipse2D.Double((int)(frameWidth-150-unit*48), (int)(cursor+unit*4), (int)(unit*15), (int)(unit*15));
                     if (!player.getAchievements().contains(Achievement.LongestRoad)) {
                         graphics.fillOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
                         hotZones.add(new HotZone(p,HotZone.ops.LR,roadButton));
                         graphics.setColor(Color.BLACK);
-                        graphics.drawString( "R", frameWidth-150-unit*45, cursor+paintHelper.cursorDrop );
+                        graphics.drawString( "R", (int)(frameWidth-150-unit*48 + (unit*15 - paintHelper.widthOfA)/2), cursor+paintHelper.cursorDrop );
                     }
                     else {
                         Stroke normal = ((Graphics2D)graphics).getStroke();
@@ -83,13 +83,13 @@ class PlayerPainter extends GUIObject implements PlayerListener {
                    
 
                     // Largest Army button
-                    Ellipse2D armyButton = new Ellipse2D.Double(frameWidth-150-unit*32, cursor+unit*6, unit*15, unit*15);
+                    Ellipse2D armyButton = new Ellipse2D.Double(frameWidth-150-unit*32, cursor+unit*4, unit*15, unit*15);
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
                     if (!player.getAchievements().contains(Achievement.LargestArmy)) {
                         graphics.fillOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
                         hotZones.add(new HotZone(p,HotZone.ops.LA,armyButton));
                         graphics.setColor(Color.BLACK);
-                        graphics.drawString( "A", frameWidth-150-unit*29, cursor+paintHelper.cursorDrop );
+                        graphics.drawString( "A", (int)(frameWidth-150-unit*32 + (unit*15 - paintHelper.widthOfA)/2), cursor+paintHelper.cursorDrop );
                     }
                     else {
                         Stroke normal = ((Graphics2D)graphics).getStroke();
@@ -102,21 +102,21 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 
                     // Plus box:
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
-                    Ellipse2D plusButton = new Ellipse2D.Double(frameWidth-150-unit*16, cursor+unit*6, unit*15, unit*15);
+                    Ellipse2D plusButton = new Ellipse2D.Double(frameWidth-150-unit*16, cursor+unit*4, unit*15, unit*15);
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
                     Polygon pol = new Polygon();
-                    pol.addPoint(unit*3, 0);
-                    pol.addPoint(unit*4, 0);
-                    pol.addPoint(unit*4, unit*3);
-                    pol.addPoint(unit*7, unit*3);
-                    pol.addPoint(unit*7, unit*4);
-                    pol.addPoint(unit*4, unit*4);
-                    pol.addPoint(unit*4, unit*7);
-                    pol.addPoint(unit*3, unit*7);
-                    pol.addPoint(unit*3, unit*4);
-                    pol.addPoint(0, unit*4);
-                    pol.addPoint(0, unit*3);
-                    pol.addPoint(unit*3, unit*3);
+                    pol.addPoint((int)(unit*3), 0);
+                    pol.addPoint((int)(unit*4), 0);
+                    pol.addPoint((int)(unit*4), (int)(unit*3));
+                    pol.addPoint((int)(unit*7), (int)(unit*3));
+                    pol.addPoint((int)(unit*7), (int)(unit*4));
+                    pol.addPoint((int)(unit*4), (int)(unit*4));
+                    pol.addPoint((int)(unit*4), (int)(unit*7));
+                    pol.addPoint((int)(unit*3), (int)(unit*7));
+                    pol.addPoint((int)(unit*3), (int)(unit*4));
+                    pol.addPoint(0, (int)(unit*4));
+                    pol.addPoint(0, (int)(unit*3));
+                    pol.addPoint((int)(unit*3), (int)(unit*3));
                     pol.translate((int)(plusButton.getX()+unit*4), (int)(plusButton.getY()+unit*4));
                     graphics.fillOval((int)plusButton.getX(), (int)plusButton.getY(), (int)plusButton.getWidth(), (int)plusButton.getHeight());
                     graphics.setColor(Color.BLACK);
@@ -126,10 +126,10 @@ class PlayerPainter extends GUIObject implements PlayerListener {
                 // Minus box:
                 if ((game.getWinner() == null && p.getSettlementVP() > 2) || game.getWinner() == p) {
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
-                    Ellipse2D box2 = new Ellipse2D.Double(frameWidth-150, cursor+unit*6, unit*15, unit*15);
+                    Ellipse2D box2 = new Ellipse2D.Double(frameWidth-150, cursor+unit*4, unit*15, unit*15);
                     graphics.fillOval((int)box2.getX(), (int)box2.getY(), (int)box2.getWidth(), (int)box2.getHeight());
                     graphics.setColor(Color.BLACK);
-                    graphics.fillRect((int)(box2.getX()+unit*4), (int)(box2.getY()+unit*7), unit*7, unit);
+                    graphics.fillRect((int)(box2.getX()+unit*4), (int)(box2.getY()+unit*7), (int)(unit*7), (int)(unit));
 
 
                     hotZones.add(new HotZone(player,HotZone.ops.DEC,box2));
