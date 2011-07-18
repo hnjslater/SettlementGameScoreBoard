@@ -1,12 +1,10 @@
-import java.awt.Color;
-import java.util.*;
-import java.awt.font.TextAttribute;
 import java.awt.RenderingHints;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.image.BufferStrategy;
 import java.awt.event.KeyListener;
 import javax.swing.event.MouseInputListener;
@@ -17,6 +15,9 @@ import java.awt.geom.Ellipse2D;
 import javax.swing.JFrame;
 import java.awt.BasicStroke;
 import java.awt.Stroke;
+import java.util.*;
+import java.awt.Color;
+import java.util.Date;
 
 final class ScoreBoard implements GameListener {
  
@@ -28,7 +29,6 @@ final class ScoreBoard implements GameListener {
         EDIT_PLAYER
     }
     private String helpMessage;
-    private PlayerColor editingPlayer;
     private JFrame frame;
     private Game game;
     private ScoreBoardHelper helper = new ScoreBoardHelper();
@@ -38,22 +38,13 @@ final class ScoreBoard implements GameListener {
     private boolean showColorHelp = true;
     private boolean showMouseControls = false;
     private boolean fullScreen = false;
+    private boolean isAnimating = true;
     private Player winner;
     private List<GUIObject> guiObjects;
     private List<HotZone> hotZones;
-
+    private PlayerPainterFactory factory;
  
-    public enum ops {INC, DEC, LR, LA};
-    public class HotZone {
-        public HotZone(Player p, ops o, Shape z) {
-            this.player = p;
-            this.operation = o;
-            this.zone = z;
-        }
-        public ops operation;
-        public Player player;
-        public Shape zone;
-    }
+   
 
     
     // might as well cache these;
@@ -61,7 +52,13 @@ final class ScoreBoard implements GameListener {
     private Font littleFont = new Font( "Courier", 0, 22 );
 
     public ScoreBoard(Game game) {
+        guiObjects = Collections.synchronizedList(new LinkedList<GUIObject>());
+        this.factory = new PlayerPainterFactory();
+
         this.game = game;
+        for (Player player : game.getLeaderBoard()) {
+            guiObjects.add(factory.getPainter(player, game));
+        }
         game.addGameListener(this);
         this.helpMessage = helper.getHelpMessage(ScoreBoardState.DEFAULT);
         this.controller = new ScoreBoardKeyListener(game, this);
@@ -69,9 +66,11 @@ final class ScoreBoard implements GameListener {
         this.hotZones = Collections.synchronizedList(new LinkedList<HotZone>()); 
         this.mouseController = new ScoreBoardMouseListener(this,game,hotZones);
 
+
+
         toggleFullScreen();
 
-        guiObjects = Collections.synchronizedList(new LinkedList<GUIObject>());
+
    }
 
     public void setShowHelp(boolean showHelp) {
@@ -91,7 +90,11 @@ final class ScoreBoard implements GameListener {
     }
 
     public void setShowMouseControls(boolean showMouseControls) {
-        this.showMouseControls = showMouseControls;
+        synchronized(guiObjects) {
+            for (GUIObject o : guiObjects) {
+                o.setShowMouseAffordances(showMouseControls);
+            }
+        }
     }
 
     public boolean getShowMouseControls() {
@@ -100,37 +103,64 @@ final class ScoreBoard implements GameListener {
 
     public void setState(ScoreBoardState state) {
         this.helpMessage = helper.getHelpMessage(state);
-        this.editingPlayer = PlayerColor.None;
+        finishEditing();
     }
 
     public void setStateAchievement(Achievement achievement) {
         this.helpMessage = "Enter Color of player who has the " + achievement.toString() + ".";
-        this.editingPlayer = PlayerColor.None;
+        finishEditing();
     }
 
     public void setStateEditing(PlayerColor playerColor) {
         this.helpMessage = "Editing " + playerColor.toString() + ".";
-        this.editingPlayer = playerColor;
+
+        PlayerPainter painter = null;
+        synchronized(guiObjects) {
+            for (GUIObject o : guiObjects) {
+                if (o instanceof PlayerPainter && ((PlayerPainter)o).player.getPlayerColor() ==  playerColor) {
+                    painter = (PlayerPainter)o;
+                }
+            }
+        }
+        painter.setEditing(true);
+    }
+
+    private void finishEditing() {
+        synchronized(guiObjects) {
+            for (GUIObject o : guiObjects) {
+                if (o instanceof PlayerPainter) {
+                    ((PlayerPainter)o).setEditing(false);
+                }
+            }
+        }
     }
 
     public void renderLoop() {
         while (true) {
             paint();
+            // limit framerate if there's no animation currently happening
+            try {
+            if (!isAnimating)
+                Thread.sleep(100);
+            }
+            catch (Exception ex) {
+                // Don't really care if I get woken.
+            }
         }
     }
-
     public void tickLoop() {
         while (true) {
-
-            int width = frame.getWidth();
-            int height = frame.getHeight();
+            
+            int width = frame.getContentPane().getWidth();
+            int height = frame.getContentPane().getHeight();
 
 
             long time = (new Date()).getTime();
             synchronized(guiObjects) { 
+
                 List<GUIObject> toremove = new ArrayList<GUIObject>();
                 for (GUIObject p : guiObjects) {
-                    if (p.getY(time) > height || p.getX(time) < 0 || p.getX(time) > width) {
+                    if ((p.getY(time) > height || p.getX(time) < 0 || p.getX(time) > width) && p instanceof Particle) {
                         toremove.add(p);
                     }
                 }
@@ -188,17 +218,20 @@ final class ScoreBoard implements GameListener {
         if (frame != null) {
             frame.setVisible(false);
             gs.setFullScreenWindow(null);
+
+
             frame.dispose();
         }
 
         frame = new JFrame(gs.getDefaultConfiguration());
         frame.addKeyListener(controller);
-        frame.addMouseListener(mouseController);
-        frame.addMouseMotionListener(mouseController);
+
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.validate();
 
         if (gs.isFullScreenSupported() && !fullScreen) {
+            frame.addMouseListener(mouseController);
+            frame.addMouseMotionListener(mouseController);
             frame.setUndecorated(true);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
@@ -207,11 +240,14 @@ final class ScoreBoard implements GameListener {
             fullScreen = true;
         }
         else {
+            frame.getContentPane().addMouseListener(mouseController);
+            frame.getContentPane().addMouseMotionListener(mouseController);
             frame.setSize(800,600);
             frame.setResizable(true);
             frame.setIgnoreRepaint(false);
             frame.setUndecorated(false);
             frame.setVisible(true);
+
 
             fullScreen = false;
         }
@@ -220,17 +256,17 @@ final class ScoreBoard implements GameListener {
 
 
     private synchronized void paint () {
-        int height = frame.getContentPane().getHeight();
-        int width = frame.getContentPane().getWidth();
-        // FIXME a bit iffy if not fullscreen
-
         BufferStrategy bf = frame.getBufferStrategy();
         Graphics graphics = bf.getDrawGraphics();
-
 
         // background
         graphics.setColor( java.awt.Color.BLACK );
         graphics.fillRect( 0, 0, frame.getWidth(),frame.getHeight() );
+
+        // FIXME a bit iffy if not fullscreen
+        if (!fullScreen) {
+            graphics.translate(0, frame.getHeight() - frame.getContentPane().getHeight());
+        }
 
         // antialiasing
         ((Graphics2D)graphics).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
@@ -238,161 +274,52 @@ final class ScoreBoard implements GameListener {
         ((Graphics2D)graphics).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                          RenderingHints.VALUE_ANTIALIAS_ON);
 
+        graphics.setFont(bigFont);
 
-        // Not sure if I should be caching these? 
-        int bigTextHeight = (int)(graphics.getFontMetrics(bigFont).getMaxCharBounds(graphics).getHeight());
-        int littleTextHeight = (int)(graphics.getFontMetrics(littleFont).getMaxCharBounds(graphics).getHeight());
-        int littleTextDescent = (int)(graphics.getFontMetrics(littleFont).getMaxDescent());
-        int lineHeight = 0;
-        if (game.getNumberOfPlayers() > 0) {
-            if (showHelp && guiObjects.size() == 0) {
-                lineHeight = (height - (littleTextHeight * 2)) / (game.getNumberOfPlayers());
-            }
-            else {
-                lineHeight = height / game.getNumberOfPlayers();
-            }
-        }
-        int hozOffset = 0; 
-        int scoreWidth = graphics.getFontMetrics(bigFont).stringWidth("00 "); 
-
-        graphics.setFont( bigFont );
-
-        PlayerColor longestRoad = game.getAchievement(Achievement.LongestRoad);
-        PlayerColor largestArmy = game.getAchievement(Achievement.LargestArmy);
-
-        // Put the cursor in the right place
-        int cursorDrop =  (int)(graphics.getFontMetrics(bigFont).getMaxAscent()) + (lineHeight - bigTextHeight) / 2;
-
-        //FIXME HACK! to get the height of the title bar.
-        int cursor = hozOffset + (frame.getHeight() - frame.getContentPane().getHeight());
-        synchronized(hotZones) { // otherwise sometimes a click will happen when hotZones is empty
-        hotZones.clear();
-        for ( Player p : game.getLeaderBoard() ) {
-            graphics.setColor( helper.getGraphicsColor(p.getPlayerColor()) );
-            graphics.drawString( new Integer( p.getVP()).toString(), 50, cursor+cursorDrop );
-            String displayName = p.getName();
-
-            // Hacky cursor
-            if (editingPlayer == p.getPlayerColor())
-                displayName += "|";
-
-            // Achievements
-            if (p.getPlayerColor() == longestRoad)
-                displayName += " (LR)";
-            if (p.getPlayerColor() == largestArmy)
-                displayName += " (LA)";
-
-            // Finally the player name!
-            graphics.drawString( displayName, 50+scoreWidth, cursor+cursorDrop );
-
-            if (getShowColorHelp()) {
-                graphics.drawChars( new char[] {helper.getColorChar(p.getPlayerColor())}, 0, 1, width-70, cursor+cursorDrop );
-            }
-
-            if (getShowMouseControls()) {
-            //FIXME all of the following code really....
-
-
-                int unit = lineHeight/23;
-
-
-                if (winner == null) {
-
-                    // Longest Road button
-
-                    Ellipse2D roadButton = new Ellipse2D.Double(width-150-unit*48, cursor+unit*6, unit*15, unit*15);
-                    if (p.getPlayerColor() != longestRoad) {
-                        graphics.fillOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
-                        hotZones.add(new HotZone(p,ops.LR,roadButton));
-                        graphics.setColor(Color.BLACK);
-                        graphics.drawString( "R", width-150-unit*45, cursor+cursorDrop );
-                    }
-                    else {
-                        Stroke normal = ((Graphics2D)graphics).getStroke();
-                        Stroke wider = new BasicStroke(4);
-                        ((Graphics2D)graphics).setStroke(wider);
-                        graphics.drawOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
-                        ((Graphics2D)graphics).setStroke(normal);
-                        hotZones.add(new HotZone(null,ops.LR,roadButton));
-                    }
-                   
-
-                    // Largest Army button
-                    Ellipse2D armyButton = new Ellipse2D.Double(width-150-unit*32, cursor+unit*6, unit*15, unit*15);
-                    graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
-                    if (p.getPlayerColor() != largestArmy) {
-                        graphics.fillOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
-                        hotZones.add(new HotZone(p,ops.LA,armyButton));
-                        graphics.setColor(Color.BLACK);
-                        graphics.drawString( "A", width-150-unit*29, cursor+cursorDrop );
-                    }
-                    else {
-                        Stroke normal = ((Graphics2D)graphics).getStroke();
-                        Stroke wider = new BasicStroke(4);
-                        ((Graphics2D)graphics).setStroke(wider);
-                        graphics.drawOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
-                        ((Graphics2D)graphics).setStroke(normal);
-                        hotZones.add(new HotZone(null,ops.LA,armyButton));
-                    }
-
-                    // Plus box:
-                    graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
-                    Ellipse2D plusButton = new Ellipse2D.Double(width-150-unit*16, cursor+unit*6, unit*15, unit*15);
-                    graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
-                    Polygon pol = new Polygon();
-                    pol.addPoint(unit*3, 0);
-                    pol.addPoint(unit*4, 0);
-                    pol.addPoint(unit*4, unit*3);
-                    pol.addPoint(unit*7, unit*3);
-                    pol.addPoint(unit*7, unit*4);
-                    pol.addPoint(unit*4, unit*4);
-                    pol.addPoint(unit*4, unit*7);
-                    pol.addPoint(unit*3, unit*7);
-                    pol.addPoint(unit*3, unit*4);
-                    pol.addPoint(0, unit*4);
-                    pol.addPoint(0, unit*3);
-                    pol.addPoint(unit*3, unit*3);
-                    pol.translate((int)(plusButton.getX()+unit*4), (int)(plusButton.getY()+unit*4));
-                    graphics.fillOval((int)plusButton.getX(), (int)plusButton.getY(), (int)plusButton.getWidth(), (int)plusButton.getHeight());
-                    graphics.setColor(Color.BLACK);
-                    graphics.fillPolygon(pol);
-                    hotZones.add(new HotZone(p,ops.INC,plusButton));
-                }
-                // Minus box:
-                if ((winner == null && p.getSettlementVP() > 2) || winner == p) {
-                    graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
-                    Ellipse2D box2 = new Ellipse2D.Double(width-150, cursor+unit*6, unit*15, unit*15);
-                    graphics.fillOval((int)box2.getX(), (int)box2.getY(), (int)box2.getWidth(), (int)box2.getHeight());
-                    graphics.setColor(Color.BLACK);
-                    graphics.fillRect((int)(box2.getX()+unit*4), (int)(box2.getY()+unit*7), unit*7, unit);
-
-
-                    hotZones.add(new HotZone(p,ops.DEC,box2));
-                }
-
-            }
-            cursor += lineHeight;
-        }}
-
-        if (showHelp && guiObjects.size() == 0) {
-            graphics.setColor( Color.WHITE );
-            graphics.setFont(littleFont);
-            graphics.drawString( helpMessage, 0, height-littleTextDescent-littleTextHeight);
-            graphics.drawString( helper.getColorHelp(), 0, height-littleTextDescent);
-        }
         long now = (new Date()).getTime();
+
         synchronized(guiObjects) { 
-            for (GUIObject p : guiObjects) {
-                p.paint(graphics, now);
+            isAnimating = false;
+            synchronized(hotZones) { // otherwise sometimes a click will happen when hotZones is empty
+                hotZones.clear();
+                for (GUIObject p : guiObjects) {
+                    isAnimating |= p.paint(graphics, now, frame.getContentPane().getWidth(), frame.getContentPane().getHeight(), hotZones);
+                }
             }
         }
-
         graphics.dispose();
         bf.show();
     }
 
-    public void winnerChanged(WinnerChangedEvent wce) {
+    public void winnerChanged(GameEvent wce) {
         winner = wce.getPlayer();
     }
-}
 
+    public void playerRemoved(GameEvent e) {
+        PlayerPainter toRemove = null;
+        synchronized(guiObjects) {
+            for (GUIObject o : guiObjects) {
+                if (o instanceof PlayerPainter && ((PlayerPainter)o).player.equals(e.getPlayer())) {
+                    toRemove = (PlayerPainter)o;
+                }
+                else {
+                    // if it's the painter we're looking for it'll still need to redraw itself
+                    o.invalidate();
+                }
+            }
+        }
+        if (toRemove != null) {
+            guiObjects.remove(toRemove);
+        }
+    }
+
+    public void playerAdded(GameEvent e) {
+        guiObjects.add(factory.getPainter(e.getPlayer(), game));
+        synchronized(guiObjects) {
+            for (GUIObject o : guiObjects) {
+                o.invalidate();
+            }
+        }
+    }
+       
+}

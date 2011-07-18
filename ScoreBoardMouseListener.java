@@ -4,11 +4,11 @@ import java.util.List;
 
 class ScoreBoardMouseListener extends MouseInputAdapter {
 
-    private List<ScoreBoard.HotZone> hotZones;
+    private List<HotZone> hotZones;
     private ScoreBoard scoreBoard;
     private Game game;
     private Thread controlsHider;
-    public ScoreBoardMouseListener(ScoreBoard sb, Game g, List<ScoreBoard.HotZone> hz) {
+    public ScoreBoardMouseListener(ScoreBoard sb, Game g, List<HotZone> hz) {
         this.hotZones = hz;
         this.scoreBoard = sb;
         this.game = g;
@@ -28,17 +28,17 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
     }
 
     public void mouseClicked(MouseEvent me) {
+        resetHideCounter();
         synchronized(hotZones) {
-            resetHideCounter();
-            for (ScoreBoard.HotZone hz : hotZones) {
+            for (HotZone hz : hotZones) {
                 if (hz.zone.contains(me.getPoint())) {
-                    if (hz.operation == ScoreBoard.ops.INC) {
+                    if (hz.operation == HotZone.ops.INC) {
                         hz.player.updateVP(+1);
                     }
-                    else if (hz.operation == ScoreBoard.ops.DEC) {
+                    else if (hz.operation == HotZone.ops.DEC) {
                         hz.player.updateVP(-1);
                     }
-                    else if (hz.operation == ScoreBoard.ops.LA) {
+                    else if (hz.operation == HotZone.ops.LA) {
                         if (hz.player != null) {
                             game.setAchievement(hz.player.getPlayerColor(), Achievement.LargestArmy);
                         }
@@ -46,7 +46,7 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
                             game.removeAchievement(Achievement.LargestArmy);
                         }
                     }
-                    else if (hz.operation == ScoreBoard.ops.LR) {
+                    else if (hz.operation == HotZone.ops.LR) {
                         if (hz.player != null) {
                             game.setAchievement(hz.player.getPlayerColor(), Achievement.LongestRoad);
                         }
@@ -56,7 +56,6 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
                     }
                     return;
                 }
-
             }
         }
     }
