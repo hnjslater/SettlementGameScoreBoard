@@ -20,6 +20,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
     private ScoreBoardHelper helper = new ScoreBoardHelper();
     private BufferedImage playerName;
     Boolean playerNameDirty = true;
+    Object playerNameDirtyLock = new Object();
     final int margin = 25;
     int letterWidth;
     int lineHeight;
@@ -39,20 +40,26 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 
     // GUIObject methods ///////////////////////////////////////////
     public boolean paint(Graphics graphics, long time, int frameWidth, int frameHeight, List<HotZone> hotZones) {
+        int lineHeight = 0;
         if (game.getNumberOfPlayers() < 3)
             lineHeight = frameHeight / 3;
         else
             lineHeight = frameHeight / game.getNumberOfPlayers();
 
-        boolean changed = paintHelper.setProperties(graphics, frameWidth, frameHeight, lineHeight);
-
-        if (playerNameDirty || changed) {
+        if (this.frameHeight != frameHeight || this.frameWidth != frameWidth || this.lineHeight != lineHeight || playerNameDirty) {
+            paintHelper.setProperties(graphics, frameWidth, frameHeight, lineHeight);
+            this.frameHeight = frameHeight;
+            this.frameWidth = frameWidth;
+            this.lineHeight = lineHeight;
             updateImage(graphics.getFont());
+        }
+        else {
+            graphics.setFont(paintHelper.font);
         }
         int cursor = getY(0);
         Player p = player;
         graphics.setColor( helper.getGraphicsColor(player.getPlayerColor()) );
-
+        
 
 
 
@@ -147,7 +154,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
         this.y = Y;
     }
     public void invalidate() {
-        synchronized(playerNameDirty) {
+        synchronized(playerNameDirtyLock) {
             playerNameDirty = true;
         }
     }
@@ -159,13 +166,13 @@ class PlayerPainter extends GUIObject implements PlayerListener {
     /// Player Listener methods
 
     public void playerVPChanged(PlayerEvent pe) {
-        synchronized(playerNameDirty) {
+        synchronized(playerNameDirtyLock) {
             playerNameDirty = true;
         }
     }
 
     public void playerRenamed(PlayerEvent pe) {
-        synchronized(playerNameDirty) {
+        synchronized(playerNameDirtyLock) {
             playerNameDirty = true;
         }
     }
@@ -173,7 +180,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
     // private methods
     // FIXME needs to know when the font's changed...
     private void updateImage(Font bigFont) {
-        synchronized(playerNameDirty) {
+        synchronized(playerNameDirtyLock) {
             String displayName = player.getName();
             //Hacky cursor
             if (editing)

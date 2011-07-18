@@ -218,6 +218,8 @@ final class ScoreBoard implements GameListener {
         if (frame != null) {
             frame.setVisible(false);
             gs.setFullScreenWindow(null);
+
+
             frame.dispose();
         }
 
