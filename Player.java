@@ -60,11 +60,11 @@ class Player implements Comparable<Player> {
                 this.vp = 10 - getAchievementsVP();
             }
             else {
-                raisePlayerVPChangedEvent();
                 // if the player points has changed, best update vp_times
                 if (vp_delta != -1) {
                     this.vp_times[getVP()] = sharedCount.getAndIncrement();
                 }
+                raisePlayerVPChangedEvent();
             }
         }
     }
