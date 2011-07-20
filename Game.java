@@ -98,8 +98,13 @@ class Game implements PlayerListener {
             raiseWinnerChangedEvent(new GameEvent(this,null));
 
         }
+        for (Player i : playersByColor.values()) {
+            i.raisePlayerRankChangedEvent();
+        }
     }
     public void playerRenamed(PlayerEvent pe) {
+    }
+    public void playerRankChanged(PlayerEvent pe) {
     }
 
     private void raiseWinnerChangedEvent(GameEvent wce) {

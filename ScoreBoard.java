@@ -140,8 +140,12 @@ final class ScoreBoard implements GameListener {
             paint();
             // limit framerate if there's no animation currently happening
             try {
-            if (!isAnimating)
-                Thread.sleep(100);
+                if (!isAnimating) {
+                    Thread.sleep(100);
+                }
+                else {
+                    Thread.yield();
+                }
             }
             catch (Exception ex) {
                 // Don't really care if I get woken.

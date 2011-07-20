@@ -11,6 +11,7 @@ import java.awt.Shape;
 import java.util.List;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.util.Date;
 
 
 
@@ -29,6 +30,10 @@ class PlayerPainter extends GUIObject implements PlayerListener {
     private int frameWidth;
     private int frameHeight;
 
+    private int startY = -1;
+    private int endY = -1;
+    private long startTime;
+
     public PlayerPainter(Player p, Game g, PlayerPainterFontHelper paintHelper) {
         super(0,0,0,0);
         this.player = p;
@@ -40,12 +45,17 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 
     // GUIObject methods ///////////////////////////////////////////
     public boolean paint(Graphics graphics, long time, int frameWidth, int frameHeight, List<HotZone> hotZones) {
+
         int lineHeight = 0;
         if (game.getNumberOfPlayers() < 3)
             lineHeight = frameHeight / 3;
         else
             lineHeight = frameHeight / game.getNumberOfPlayers();
 
+        if (startY == -1) {
+            startY =(lineHeight * game.getLeaderBoard().lastIndexOf(player)); 
+            endY = startY;
+        }
         if (this.frameHeight != frameHeight || this.frameWidth != frameWidth || this.lineHeight != lineHeight || playerNameDirty) {
             paintHelper.setProperties(graphics, frameWidth, frameHeight, lineHeight);
             this.frameHeight = frameHeight;
@@ -56,15 +66,13 @@ class PlayerPainter extends GUIObject implements PlayerListener {
         else {
             graphics.setFont(paintHelper.font);
         }
-        int cursor = getY(0);
+        int cursor = getY(time);
         Player p = player;
         graphics.setColor( helper.getGraphicsColor(player.getPlayerColor()) );
-        
-
-
 
         graphics.drawImage(playerName,0,cursor + (lineHeight - playerName.getHeight()) /2,null);
-        graphics.drawChars( new char[] {helper.getColorChar(player.getPlayerColor())}, 0, 1, frameWidth-letterWidth-margin, cursor+paintHelper.cursorDrop );
+        char[] colorChar = new char[] { helper.getColorChar(player.getPlayerColor())} ;
+        graphics.drawChars(colorChar , 0, 1, frameWidth-letterWidth-margin, cursor+paintHelper.cursorDrop );
 
         if (showMouseAffordances) {
                 float unit = lineHeight/23f;
@@ -142,16 +150,34 @@ class PlayerPainter extends GUIObject implements PlayerListener {
                     hotZones.add(new HotZone(player,HotZone.ops.DEC,box2));
                 }
         }
-        return false;
+        // if they are equal, then we are not animating
+        return startY == endY;
     }
     public int getX(long time) {
         return 0;
     }
     public int getY(long time) {
-        return (lineHeight * game.getLeaderBoard().lastIndexOf(player)); 
-    }
-    public void setY(int Y) {
-        this.y = Y;
+        //return endY;
+        int currentY = 0;
+        int direction = 0;
+        if (endY > startY)
+            direction = +1;
+        else if (endY < startY)
+            direction = -1;
+        long duration = time - startTime;
+
+        if (duration < 0)
+            duration = 0;
+
+        currentY =(int)(duration * direction)/2 + startY;
+
+        if ((direction == -1) == (currentY < endY)) {
+            startY = endY;
+            currentY = startY;
+        }
+        
+        return currentY;
+
     }
     public void invalidate() {
         synchronized(playerNameDirtyLock) {
@@ -176,22 +202,31 @@ class PlayerPainter extends GUIObject implements PlayerListener {
             playerNameDirty = true;
         }
     }
+
+    public void playerRankChanged(PlayerEvent pe) {
+        long now = (new Date()).getTime();
+        startY = getY(now);
+        endY = (lineHeight * game.getLeaderBoard().lastIndexOf(player)); 
+        startTime = now;
+    }
     
     // private methods
-    // FIXME needs to know when the font's changed...
     private void updateImage(Font bigFont) {
+
+        // Do as much as we can outside of the synchronized to reduce the change of a deadlock
+        String displayName = player.getName();
+        //Hacky cursor
+        if (editing)
+            displayName += "|";
+
+        // Achievements
+        if (player.getAchievements().contains(Achievement.LongestRoad))
+            displayName += " (LR)";
+        if (player.getAchievements().contains(Achievement.LargestArmy))
+            displayName += " (LA)";
+
+        String playerVP =  new Integer( player.getVP()).toString();
         synchronized(playerNameDirtyLock) {
-            String displayName = player.getName();
-            //Hacky cursor
-            if (editing)
-                displayName += "|";
-
-            // Achievements
-            if (player.getAchievements().contains(Achievement.LongestRoad))
-                displayName += " (LR)";
-            if (player.getAchievements().contains(Achievement.LargestArmy))
-                displayName += " (LA)";
-
             Graphics2D graphics = playerName.createGraphics();
             graphics.setFont(bigFont);
             FontMetrics metrics = graphics.getFontMetrics();
@@ -200,7 +235,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
             int maxDescent = metrics.getMaxAscent();
             int maxHeight = maxDescent + metrics.getMaxDescent();
             graphics.dispose();
-            playerName = new BufferedImage(maxWidth + paintHelper.maxScoreWidth + margin, maxHeight, BufferedImage.TYPE_INT_RGB);
+            playerName = new BufferedImage(maxWidth + paintHelper.maxScoreWidth + margin, maxHeight, BufferedImage.TYPE_INT_ARGB);
             graphics = playerName.createGraphics();
 
             graphics.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
@@ -210,7 +245,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 
             graphics.setColor( helper.getGraphicsColor(player.getPlayerColor()) );
             graphics.setFont(bigFont);
-            graphics.drawString( new Integer( player.getVP()).toString(), margin, maxDescent);
+            graphics.drawString(playerVP, margin, maxDescent);
             graphics.drawString(displayName, paintHelper.maxScoreWidth + margin, maxDescent);
             playerNameDirty = false;
         }

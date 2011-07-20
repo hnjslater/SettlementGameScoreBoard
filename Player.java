@@ -152,5 +152,12 @@ class Player implements Comparable<Player> {
                 }
             }
     }
+    public void raisePlayerRankChangedEvent() {
+            synchronized(playerListeners) {
+                for (PlayerListener p: playerListeners) {
+                    p.playerRankChanged(new PlayerEvent(this));
+                }
+            }
+    }
 }
 
