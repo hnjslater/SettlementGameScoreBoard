@@ -24,11 +24,11 @@ class PlayerPainter extends GUIObject implements PlayerListener {
     Object playerNameDirtyLock = new Object();
     final int margin = 25;
     int letterWidth;
-    int lineHeight;
     private PlayerPainterFontHelper paintHelper;
     private boolean editing;
     private int frameWidth;
     private int frameHeight;
+    private int numPlayers;
 
     private int startY = -1;
     private int endY = -1;
@@ -46,25 +46,26 @@ class PlayerPainter extends GUIObject implements PlayerListener {
     // GUIObject methods ///////////////////////////////////////////
     public boolean paint(Graphics graphics, long time, int frameWidth, int frameHeight, List<HotZone> hotZones) {
 
-        int lineHeight = 0;
-        if (game.getNumberOfPlayers() < 3)
-            lineHeight = frameHeight / 3;
-        else
-            lineHeight = frameHeight / game.getNumberOfPlayers();
 
-        if (startY == -1) {
-            startY =(lineHeight * game.getLeaderBoard().lastIndexOf(player)); 
-            endY = startY;
-        }
-        if (this.frameHeight != frameHeight || this.frameWidth != frameWidth || this.lineHeight != lineHeight || playerNameDirty) {
-            paintHelper.setProperties(graphics, frameWidth, frameHeight, lineHeight);
+
+        if (this.frameHeight != frameHeight || this.frameWidth != frameWidth || this.numPlayers != game.getNumberOfPlayers() || playerNameDirty) {
+
             this.frameHeight = frameHeight;
             this.frameWidth = frameWidth;
-            this.lineHeight = lineHeight;
+            this.numPlayers = game.getNumberOfPlayers();
+            
+            paintHelper.setProperties(graphics, frameWidth, frameHeight, getLineHeight());
             updateImage(graphics.getFont());
         }
         else {
             graphics.setFont(paintHelper.font);
+        }
+        int lineHeight = getLineHeight();
+
+
+        if (startY == -1) {
+            startY =(lineHeight * game.getLeaderBoard().lastIndexOf(player)); 
+            endY = startY;
         }
         int cursor = getY(time);
         Player p = player;
@@ -182,6 +183,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
     public void invalidate() {
         synchronized(playerNameDirtyLock) {
             playerNameDirty = true;
+            recalculateEndPosition();
         }
     }
     public void setEditing(boolean editing) {
@@ -204,9 +206,13 @@ class PlayerPainter extends GUIObject implements PlayerListener {
     }
 
     public void playerRankChanged(PlayerEvent pe) {
+        recalculateEndPosition();
+    }
+
+    public void recalculateEndPosition() {
         long now = (new Date()).getTime();
         startY = getY(now);
-        endY = (lineHeight * game.getLeaderBoard().lastIndexOf(player)); 
+        endY = (getLineHeight() * game.getLeaderBoard().lastIndexOf(player)); 
         startTime = now;
     }
     
@@ -249,5 +255,11 @@ class PlayerPainter extends GUIObject implements PlayerListener {
             graphics.drawString(displayName, paintHelper.maxScoreWidth + margin, maxDescent);
             playerNameDirty = false;
         }
+    }
+    private int getLineHeight() {
+        if (numPlayers < 3)
+            return frameHeight / 3;
+        else
+            return frameHeight / numPlayers;
     }
 }

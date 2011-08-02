@@ -126,7 +126,9 @@ class ScoreBoardKeyListener extends KeyAdapter {
                             p.updateVP(updateAmount);
                         }
                     }
-                    catch (Exception ex) {}
+                    catch (Exception ex) {
+                        System.out.println("No1");
+                    }
                 }
             break;
         }

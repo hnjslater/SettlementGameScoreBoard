@@ -306,14 +306,15 @@ final class ScoreBoard implements GameListener {
                 if (o instanceof PlayerPainter && ((PlayerPainter)o).player.equals(e.getPlayer())) {
                     toRemove = (PlayerPainter)o;
                 }
-                else {
-                    // if it's the painter we're looking for it'll still need to redraw itself
-                    o.invalidate();
-                }
             }
         }
         if (toRemove != null) {
             guiObjects.remove(toRemove);
+        }
+        synchronized(guiObjects) {
+            for (GUIObject o : guiObjects) {
+                //o.invalidate();
+            }
         }
     }
 

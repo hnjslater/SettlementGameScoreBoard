@@ -28,6 +28,7 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
     }
 
     public void mouseClicked(MouseEvent me) {
+        try {
         resetHideCounter();
         synchronized(hotZones) {
             for (HotZone hz : hotZones) {
@@ -57,6 +58,10 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
                     return;
                 }
             }
+        }
+        }
+        catch (Exception ex) {
+            System.out.println("No");
         }
     }
 

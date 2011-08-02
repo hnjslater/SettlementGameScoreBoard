@@ -26,11 +26,13 @@ class Player implements Comparable<Player> {
     private PlayerColor color;
     private List<PlayerListener> playerListeners;
     private AtomicInteger sharedCount;
+    private GameConstraints constraints;
     
-    public Player(PlayerColor color, AtomicInteger sharedCount) {
+    public Player(PlayerColor color, AtomicInteger sharedCount, GameConstraints constraints) {
         this.achievements = new HashSet<Achievement>();
         this.vp_times = new int[14];
         this.color = color;
+        this.constraints = constraints; 
         this.playerListeners = Collections.synchronizedList(new ArrayList<PlayerListener>());
         this.sharedCount = sharedCount;
         this.vp = 2;
@@ -50,22 +52,16 @@ class Player implements Comparable<Player> {
     }
 
     /** Updates the this.vp and vp_times (unless VP == -1). */ 
-    public void updateVP(int vp_delta) {
+    public void updateVP(int vp_delta) throws RulesBrokenException {
         synchronized(vp_lock) {
+            constraints.updateVP(this, vp_delta);
             this.vp += vp_delta;
-            if (getVP() < 2) {
-                this.vp = 2;
+            // if the player points has changed, best update vp_times
+            if (vp_delta != -1) {
+                this.vp_times[getVP()] = sharedCount.getAndIncrement();
             }
-            else if (getVP() > 10) {
-                this.vp = 10 - getAchievementsVP();
-            }
-            else {
-                // if the player points has changed, best update vp_times
-                if (vp_delta != -1) {
-                    this.vp_times[getVP()] = sharedCount.getAndIncrement();
-                }
-                raisePlayerVPChangedEvent();
-            }
+            raisePlayerVPChangedEvent();
+           
         }
     }
 
@@ -123,6 +119,10 @@ class Player implements Comparable<Player> {
 
     public boolean equals(Object o) {
         return ((this == o) || ((o instanceof Player) && (((Player)o).color == this.color)));
+    }
+
+    public static boolean equals(Player p1, Player p2) {
+        return ((p1 == p2) || (p1 != null) && (p2 != null)&& (p1.color == p2.color));
     }
 
     public int hashCode() {
