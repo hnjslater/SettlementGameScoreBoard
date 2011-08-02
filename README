@@ -12,3 +12,10 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+To compile, you'll need maven then do something like:
+
+    mvn package
+
+This will compile, run unit tests and deposit a jar in target/
