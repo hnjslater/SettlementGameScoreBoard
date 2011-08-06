@@ -1,30 +1,10 @@
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.RenderingHints;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
+package ui.scoreboard;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.image.BufferStrategy;
-import java.awt.event.KeyListener;
-import javax.swing.event.MouseInputListener;
-import java.awt.Polygon;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.geom.Ellipse2D;
-import javax.swing.JFrame;
-import java.awt.BasicStroke;
-import java.awt.Stroke;
-import java.util.*;
-import java.awt.Color;
-import java.util.Date;
+import java.awt.Graphics;
  
 public class PlayerPainterFontHelper {
     Font font;
-    private int height;
-    private int width;
     int lineHeight;
 
     int bigTextHeight;
@@ -36,8 +16,6 @@ public class PlayerPainterFontHelper {
     public void setProperties(Graphics graphics, int width, int height, int lineHeight) {
             // update variables
             this.font = graphics.getFont(); 
-            this.height = height;
-            this.width = width;
             this.lineHeight = lineHeight;
 
             // work out the font size to use

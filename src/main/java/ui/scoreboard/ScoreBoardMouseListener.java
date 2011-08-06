@@ -1,3 +1,7 @@
+package ui.scoreboard;
+import model.*;
+
+
 import javax.swing.event.MouseInputAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -61,7 +65,7 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
         }
         }
         catch (Exception ex) {
-            System.out.println("No");
+            // Very Iffy....
         }
     }
 

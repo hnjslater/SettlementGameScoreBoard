@@ -1,25 +1,28 @@
-import java.awt.RenderingHints;
+package ui.scoreboard;
+
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.image.BufferStrategy;
+import java.awt.RenderingHints;
 import java.awt.event.KeyListener;
-import javax.swing.event.MouseInputListener;
-import java.awt.Polygon;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.geom.Ellipse2D;
-import javax.swing.JFrame;
-import java.awt.BasicStroke;
-import java.awt.Stroke;
-import java.util.*;
-import java.awt.Color;
+import java.awt.image.BufferStrategy;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
-final class ScoreBoard implements GameListener {
+import javax.swing.JFrame;
+import javax.swing.event.MouseInputListener;
+
+import model.Achievement;
+import model.Game;
+import model.GameEvent;
+import model.GameListener;
+import model.Player;
+import model.PlayerColor;
+
+public class ScoreBoard implements GameListener {
  
     public enum ScoreBoardState {
         DEFAULT,
@@ -28,11 +31,11 @@ final class ScoreBoard implements GameListener {
         SELECT_PLAYER_TO_ADD,
         EDIT_PLAYER
     }
-    private String helpMessage;
     private JFrame frame;
+    private ui.Controller controller;
     private Game game;
     private ScoreBoardHelper helper = new ScoreBoardHelper();
-    private KeyListener controller;
+    private KeyListener keyController;
     private MouseInputListener mouseController;
     private boolean showHelp = false;
     private boolean showColorHelp = true;
@@ -43,34 +46,36 @@ final class ScoreBoard implements GameListener {
     private List<GUIObject> guiObjects;
     private List<HotZone> hotZones;
     private PlayerPainterFactory factory;
+
+    private volatile boolean running;
+    private Thread graphicsThread;
+    private Thread tickThread;
+
  
    
 
     
     // might as well cache these;
     private Font bigFont = new Font( "Helvectica", 0, 64 );
-    private Font littleFont = new Font( "Courier", 0, 22 );
 
-    public ScoreBoard(Game game) {
+    public ScoreBoard(ui.Controller controller, Game game) {
+        this.game = game;
+        this.controller = controller;
+
         guiObjects = Collections.synchronizedList(new LinkedList<GUIObject>());
         this.factory = new PlayerPainterFactory();
 
-        this.game = game;
+
         for (Player player : game.getLeaderBoard()) {
             guiObjects.add(factory.getPainter(player, game));
         }
         game.addGameListener(this);
-        this.helpMessage = helper.getHelpMessage(ScoreBoardState.DEFAULT);
-        this.controller = new ScoreBoardKeyListener(game, this);
+        helper.getHelpMessage(ScoreBoardState.DEFAULT);
+        this.keyController = new ScoreBoardKeyListener(game, this);
 
         this.hotZones = Collections.synchronizedList(new LinkedList<HotZone>()); 
         this.mouseController = new ScoreBoardMouseListener(this,game,hotZones);
-
-
-
-        toggleFullScreen();
-
-
+        this.running = false;
    }
 
     public void setShowHelp(boolean showHelp) {
@@ -100,19 +105,18 @@ final class ScoreBoard implements GameListener {
     public boolean getShowMouseControls() {
         return showMouseControls;
     }
-
     public void setState(ScoreBoardState state) {
-        this.helpMessage = helper.getHelpMessage(state);
+        helper.getHelpMessage(state);
         finishEditing();
     }
 
     public void setStateAchievement(Achievement achievement) {
-        this.helpMessage = "Enter Color of player who has the " + achievement.toString() + ".";
+        //"Enter Color of player who has the " + achievement.toString() + ".";
         finishEditing();
     }
 
     public void setStateEditing(PlayerColor playerColor) {
-        this.helpMessage = "Editing " + playerColor.toString() + ".";
+        //"Editing " + playerColor.toString() + ".";
 
         PlayerPainter painter = null;
         synchronized(guiObjects) {
@@ -136,7 +140,7 @@ final class ScoreBoard implements GameListener {
     }
 
     public void renderLoop() {
-        while (true) {
+        while (running) {
             paint();
             // limit framerate if there's no animation currently happening
             try {
@@ -153,10 +157,13 @@ final class ScoreBoard implements GameListener {
         }
     }
     public void tickLoop() {
-        while (true) {
-            
-            int width = frame.getContentPane().getWidth();
-            int height = frame.getContentPane().getHeight();
+        int width;
+        int height;
+        while (running) {
+            synchronized(controller.getFrameLock()) { 
+                width = frame.getContentPane().getWidth();
+                height = frame.getContentPane().getHeight();
+            }
 
 
             long time = (new Date()).getTime();
@@ -190,72 +197,47 @@ final class ScoreBoard implements GameListener {
     }
 
     public void run() throws InterruptedException {
-        Thread graphics = new Thread() {
+        running = true;
+
+        
+        graphicsThread = new Thread() {
             public void run() {
                 tickLoop();
             }
         };
 
-        Thread ticker = new Thread() {
+        tickThread = new Thread() {
             public void run() {
                 renderLoop();
             }
         };
+        fullScreen = false;
+        toggleFullScreen();
+        graphicsThread.start();
+        tickThread.start();
+        graphicsThread.join();
+        tickThread.join();
 
-        graphics.start();
-        ticker.start();
-        graphics.join();
-        ticker.join();
+    }
+
+    public void stop() {
+        synchronized(controller.getFrameLock()) {
+            frame.removeMouseListener(mouseController);
+            frame.removeMouseMotionListener(mouseController);
+            frame.removeKeyListener(keyController);
+            running = false;
+        }
     }
 
     public synchronized void toggleFullScreen() {
-
-        // To be honest, this is all a bit messy.
-        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice gs = ge.getDefaultScreenDevice();
-
-        // If we can't do full screen and there is no window to display,
-        //  then there is nothing to do here.
-        if (frame != null && !gs.isFullScreenSupported())
-            return;
-
-        if (frame != null) {
-            frame.setVisible(false);
-            gs.setFullScreenWindow(null);
-
-
-            frame.dispose();
-        }
-
-        frame = new JFrame(gs.getDefaultConfiguration());
-        frame.addKeyListener(controller);
-
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.validate();
-
-        if (gs.isFullScreenSupported() && !fullScreen) {
+        synchronized(controller.getFrameLock()) {
+            controller.setFullScreen(!fullScreen);
+            this.fullScreen = !fullScreen;
+            frame = controller.getJFrame();
+            frame.addKeyListener(keyController);
             frame.addMouseListener(mouseController);
             frame.addMouseMotionListener(mouseController);
-            frame.setUndecorated(true);
-            frame.setResizable(false);
-            frame.setIgnoreRepaint(true);
-            gs.setFullScreenWindow(frame);
-
-            fullScreen = true;
         }
-        else {
-            frame.getContentPane().addMouseListener(mouseController);
-            frame.getContentPane().addMouseMotionListener(mouseController);
-            frame.setSize(800,600);
-            frame.setResizable(true);
-            frame.setIgnoreRepaint(false);
-            frame.setUndecorated(false);
-            frame.setVisible(true);
-
-
-            fullScreen = false;
-        }
-        frame.createBufferStrategy(2);
     }
 
 
@@ -313,7 +295,7 @@ final class ScoreBoard implements GameListener {
         }
         synchronized(guiObjects) {
             for (GUIObject o : guiObjects) {
-                //o.invalidate();
+                o.invalidate();
             }
         }
     }

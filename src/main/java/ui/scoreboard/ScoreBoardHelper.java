@@ -1,8 +1,12 @@
+package ui.scoreboard;
+import model.*;
+
+
 import java.awt.Color;
 import java.util.*;
 
 /** Class for all the boring methods ScoreBoard needs */
-public class ScoreBoardHelper {
+class ScoreBoardHelper {
 
     private Map<Character, PlayerColor> charToPlayerColor;
     private Map<PlayerColor, Character> playerColorToChar;

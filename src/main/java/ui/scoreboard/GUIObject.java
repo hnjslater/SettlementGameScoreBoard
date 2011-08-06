@@ -1,6 +1,5 @@
-import java.awt.Rectangle;
+package ui.scoreboard;
 import java.awt.Graphics;
-import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 abstract class GUIObject {

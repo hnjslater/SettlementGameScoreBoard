@@ -1,4 +1,5 @@
-  import java.awt.Graphics;
+package ui.scoreboard;
+import java.awt.Graphics;
   import java.awt.Color;
   import java.util.List;
   

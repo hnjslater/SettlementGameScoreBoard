@@ -1,13 +1,12 @@
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Collections;
-import java.util.List;
+package model;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class Player implements Comparable<Player> {
+public class Player implements Comparable<Player> {
 
     /** this array records the game.getChangeNo() for each VP level.
         This allows the compareTo to sort within each VP level fairly.
@@ -30,7 +29,7 @@ class Player implements Comparable<Player> {
     
     public Player(PlayerColor color, AtomicInteger sharedCount, GameConstraints constraints) {
         this.achievements = new HashSet<Achievement>();
-        this.vp_times = new int[14];
+        this.vp_times = new int[200];
         this.color = color;
         this.constraints = constraints; 
         this.playerListeners = Collections.synchronizedList(new ArrayList<PlayerListener>());

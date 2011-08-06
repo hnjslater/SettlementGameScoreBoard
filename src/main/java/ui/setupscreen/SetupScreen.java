@@ -1,23 +1,34 @@
-import javax.swing.*;
-import java.awt.BorderLayout;
-import java.awt.GridBagLayout;
+package ui.setupscreen;
+
 import java.awt.GridBagConstraints;
-import java.awt.Dimension;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+import model.Game;
+import model.PlayerColor;
+import ui.Controller;
 
 
 public class SetupScreen {
 
 
-    private UIController controller;
+    private Controller controller;
     private Game game;
     private Object mainLock;
     private boolean running;
     private int winningVP;
     private Map<PlayerColor, JCheckBox> playerPlaying;
     private Map<PlayerColor, JTextField> playerNames;
-    public SetupScreen(UIController controller, Game game) {
+    public SetupScreen(Controller controller, Game game) {
         this.controller = controller;
         this.game = game;
         this.mainLock = new Object();

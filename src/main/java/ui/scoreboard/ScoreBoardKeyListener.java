@@ -1,3 +1,7 @@
+package ui.scoreboard;
+import model.*;
+
+
 
 import java.awt.event.*;
 
@@ -112,7 +116,10 @@ class ScoreBoardKeyListener extends KeyAdapter {
                     board.setShowColorHelp(!board.getShowColorHelp());
                 }
                 else if (e.getKeyChar() == 'f') {
-                    board.toggleFullScreen();
+                //    board.toggleFullScreen();
+                }
+                else if (e.getKeyChar() == 's') {
+                    board.stop();
                 }
                 else {
                     try {
@@ -127,7 +134,6 @@ class ScoreBoardKeyListener extends KeyAdapter {
                         }
                     }
                     catch (Exception ex) {
-                        System.out.println("No1");
                     }
                 }
             break;

@@ -1,17 +1,22 @@
+package ui.scoreboard;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Stroke;
-import java.awt.BasicStroke;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Color;
-import java.awt.geom.*;
-import java.awt.Shape;
-import java.util.List;
-import java.awt.Image;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.util.Date;
+import java.util.List;
+
+import model.Achievement;
+import model.Game;
+import model.Player;
+import model.PlayerEvent;
+import model.PlayerListener;
 
 
 
@@ -210,10 +215,14 @@ class PlayerPainter extends GUIObject implements PlayerListener {
     }
 
     public void recalculateEndPosition() {
-        long now = (new Date()).getTime();
-        startY = getY(now);
-        endY = (getLineHeight() * game.getLeaderBoard().lastIndexOf(player)); 
-        startTime = now;
+        // if the score board hasn't been rendered yet, we don't know the frameHeight so
+        //  we can't work out where the Player is suposed to be =yet.
+        if (getLineHeight() != 0) {
+            long now = (new Date()).getTime();
+            startY = getY(now);
+            endY = (getLineHeight() * game.getLeaderBoard().lastIndexOf(player)); 
+            startTime = now;
+        }
     }
     
     // private methods
@@ -257,9 +266,9 @@ class PlayerPainter extends GUIObject implements PlayerListener {
         }
     }
     private int getLineHeight() {
-        if (numPlayers < 3)
+        if (game.getNumberOfPlayers() < 3)
             return frameHeight / 3;
         else
-            return frameHeight / numPlayers;
+            return frameHeight / game.getNumberOfPlayers();
     }
 }

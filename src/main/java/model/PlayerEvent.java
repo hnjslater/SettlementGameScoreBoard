@@ -1,7 +1,12 @@
+package model;
 import java.util.EventObject;
 
-class PlayerEvent extends EventObject {
-    private Player player;
+public class PlayerEvent extends EventObject {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private Player player;
 
     public PlayerEvent(Player player) {
         super(player);

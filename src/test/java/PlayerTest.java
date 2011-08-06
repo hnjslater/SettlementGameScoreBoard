@@ -2,7 +2,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import java.util.concurrent.atomic.AtomicInteger;
-
+import model.*;
 /**
  * Unit test for simple App.
  */

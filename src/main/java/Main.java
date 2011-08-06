@@ -1,3 +1,4 @@
+import model.*;
 class Main {
 
 public static void main(String args[]) { 
@@ -8,15 +9,15 @@ public static void main(String args[]) {
         game.addPlayer(PlayerColor.Red);
         game.addPlayer(PlayerColor.Brown);
         game.addPlayer(PlayerColor.White);
-
-        ScoreBoard scoreBoard = new ScoreBoard(game);
-
-        ScoreBoardKeyListener scoreBoardController = new ScoreBoardKeyListener(game,scoreBoard);
+        
+        ui.Controller con = new ui.Controller(game);
         try {
-        scoreBoard.run();
+            con.run();
         }
-        catch (InterruptedException ex) {
+        catch (Exception ex) {
+            System.err.println(ex.getClass());
             System.err.println(ex.getMessage());
+            ex.printStackTrace();
             System.exit(1);
         }
     } 

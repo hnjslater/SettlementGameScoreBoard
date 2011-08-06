@@ -1,15 +1,21 @@
+package ui;
+
+import model.Game;
+import ui.scoreboard.ScoreBoard;
+import ui.setupscreen.SetupScreen;
+
 import javax.swing.JFrame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 
-class UIController {
+public class Controller {
     JFrame frame;
     Game game;
     ScoreBoard scoreBoard;
     SetupScreen setupScreen;
     boolean fullscreen;
     Object frameLock;
-    public UIController(Game g) {
+    public Controller(Game g) {
         this.frameLock = new Object();
         this.game = g;
         this.scoreBoard = new ScoreBoard(this, g);

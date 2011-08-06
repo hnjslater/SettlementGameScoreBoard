@@ -1,19 +1,23 @@
-import java.util.Map;
+
+package model;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
  
-class Game implements PlayerListener, GameConstraints {
+public class Game implements PlayerListener, GameConstraints {
     private Integer change_no = 0;
     private List<GameListener> gameListeners;
     private Player winner;
     private Map<PlayerColor,Player> playersByColor;
     private Map<Achievement,PlayerColor> playersByAchievement;
     private AtomicInteger sharedCount;
+    private int maxVP = 10;
 
     public Game() {
         this.playersByColor = new HashMap<PlayerColor,Player>();
@@ -92,15 +96,22 @@ class Game implements PlayerListener, GameConstraints {
     public Player getWinner() {
         return this.winner;
     }
+    public void setWinningVP(int VP) {
+        this.maxVP = VP;
+    }
+    public int getWinningVP() {
+        return this.maxVP;
+    }
+    
 
     public void playerVPChanged(PlayerEvent pe) {
         Player p = pe.getPlayer();
-        if (p.getVP() >= 10 && this.winner == null) {
+        if (p.getVP() >= maxVP && this.winner == null) {
             this.winner = p;
             raiseWinnerChangedEvent(new GameEvent(this,p));
 
         }
-        else if (p.getVP() < 10 && p.equals(this.winner)) {
+        else if (p.getVP() < maxVP && p.equals(this.winner)) {
             this.winner = null;
             raiseWinnerChangedEvent(new GameEvent(this,null));
 
