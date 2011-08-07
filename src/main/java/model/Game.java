@@ -25,9 +25,9 @@ public class Game implements PlayerListener, GameConstraints {
         this.gameListeners = Collections.synchronizedList(new ArrayList<GameListener>());
         this.sharedCount = new AtomicInteger();
     }
-    public void addPlayer(PlayerColor color) {
+    public void addPlayer(PlayerColor color) throws RulesBrokenException {
         if (this.playersByColor.containsKey(color))
-            throw new RuntimeException("Already have a player of that color");
+            throw new RulesBrokenException("Already have a player of that color");
         Player player = new Player(color, sharedCount, this);
         player.addPlayerListener(this);
         playersByColor.put(color,player);

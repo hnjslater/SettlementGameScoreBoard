@@ -14,7 +14,7 @@ public class Controller {
     ScoreBoard scoreBoard;
     SetupScreen setupScreen;
     boolean fullscreen;
-    Object frameLock;
+    final Object frameLock;
     public Controller(Game g) {
         this.frameLock = new Object();
         this.game = g;
@@ -23,7 +23,6 @@ public class Controller {
     }
 
     public void run() throws InterruptedException {
-        setFullScreen(true);
         while (true) {
             setupScreen.run();
             scoreBoard.run();
@@ -48,9 +47,11 @@ public class Controller {
                 }
 
                 // Now create a new one:
+                //  There appears to be no way to go from fullscreen to a normal window
+                //  without destroying the window (setUndecorated throws an exception)
 
                 frame = new JFrame(gs.getDefaultConfiguration());
-
+                frame.setTitle("Settlement Game Score Board");
                 if (fullscreen) {
                     frame.setUndecorated(true);
                     frame.setResizable(false);
@@ -67,6 +68,7 @@ public class Controller {
                     this.fullscreen = false;
                 }
                 frame.createBufferStrategy(2);
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             }
         }
     }

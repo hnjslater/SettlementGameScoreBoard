@@ -29,6 +29,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
     Object playerNameDirtyLock = new Object();
     final int margin = 25;
     int letterWidth;
+    int maxLetterWidth;
     private PlayerPainterFontHelper paintHelper;
     private boolean editing;
     private int frameWidth;
@@ -81,17 +82,19 @@ class PlayerPainter extends GUIObject implements PlayerListener {
         graphics.drawChars(colorChar , 0, 1, frameWidth-letterWidth-margin, cursor+paintHelper.cursorDrop );
 
         if (showMouseAffordances) {
-                float unit = lineHeight/23f;
+                float unit = lineHeight / 23f;
+                float buttonStart = frameWidth - maxLetterWidth - margin - unit * 16 * 4;
+                float buttonWidth = unit * 16;
 
                 if (game.getWinner() == null) {
                     // Longest Road button
 
-                    Ellipse2D roadButton = new Ellipse2D.Double((int)(frameWidth-150-unit*48), (int)(cursor+unit*4), (int)(unit*15), (int)(unit*15));
+                    Ellipse2D roadButton = new Ellipse2D.Double(buttonStart, cursor+unit*4, unit*15, unit*15);
                     if (!player.getAchievements().contains(Achievement.LongestRoad)) {
                         graphics.fillOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
                         hotZones.add(new HotZone(p,HotZone.ops.LR,roadButton));
                         graphics.setColor(Color.BLACK);
-                        graphics.drawString( "R", (int)(frameWidth-150-unit*48 + (unit*15 - paintHelper.widthOfA)/2), cursor+paintHelper.cursorDrop );
+                        graphics.drawString( "R", (int)(buttonStart + (buttonWidth - unit - paintHelper.widthOfR)/2), cursor+paintHelper.cursorDrop );
                     }
                     else {
                         Stroke normal = ((Graphics2D)graphics).getStroke();
@@ -101,16 +104,17 @@ class PlayerPainter extends GUIObject implements PlayerListener {
                         ((Graphics2D)graphics).setStroke(normal);
                         hotZones.add(new HotZone(null,HotZone.ops.LR,roadButton));
                     }
-                   
+                  
 
                     // Largest Army button
-                    Ellipse2D armyButton = new Ellipse2D.Double(frameWidth-150-unit*32, cursor+unit*4, unit*15, unit*15);
+                    Ellipse2D armyButton = new Ellipse2D.Double(buttonStart + buttonWidth, cursor+unit*4, unit*15, unit*15);
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
                     if (!player.getAchievements().contains(Achievement.LargestArmy)) {
                         graphics.fillOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
                         hotZones.add(new HotZone(p,HotZone.ops.LA,armyButton));
                         graphics.setColor(Color.BLACK);
-                        graphics.drawString( "A", (int)(frameWidth-150-unit*32 + (unit*15 - paintHelper.widthOfA)/2), cursor+paintHelper.cursorDrop );
+                    	graphics.drawString( "A", (int)(buttonStart + buttonWidth + (buttonWidth - unit - paintHelper.widthOfA)/2), cursor+paintHelper.cursorDrop );
+     
                     }
                     else {
                         Stroke normal = ((Graphics2D)graphics).getStroke();
@@ -123,7 +127,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 
                     // Plus box:
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
-                    Ellipse2D plusButton = new Ellipse2D.Double(frameWidth-150-unit*16, cursor+unit*4, unit*15, unit*15);
+                    Ellipse2D plusButton = new Ellipse2D.Double(buttonStart + buttonWidth * 2, cursor+unit*4, unit*15, unit*15);
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
                     Polygon pol = new Polygon();
                     pol.addPoint((int)(unit*3), 0);
@@ -147,7 +151,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
                 // Minus box:
                 if ((game.getWinner() == null && p.getSettlementVP() > 2) || game.getWinner() == p) {
                     graphics.setColor(helper.getGraphicsColor(p.getPlayerColor()));
-                    Ellipse2D box2 = new Ellipse2D.Double(frameWidth-150, cursor+unit*4, unit*15, unit*15);
+                    Ellipse2D box2 = new Ellipse2D.Double(buttonStart + buttonWidth*3, cursor+unit*4, unit*15, unit*15);
                     graphics.fillOval((int)box2.getX(), (int)box2.getY(), (int)box2.getWidth(), (int)box2.getHeight());
                     graphics.setColor(Color.BLACK);
                     graphics.fillRect((int)(box2.getX()+unit*4), (int)(box2.getY()+unit*7), (int)(unit*7), (int)(unit));
@@ -155,6 +159,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 
                     hotZones.add(new HotZone(player,HotZone.ops.DEC,box2));
                 }
+                
         }
         // if they are equal, then we are not animating
         return startY == endY;
@@ -247,6 +252,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
             FontMetrics metrics = graphics.getFontMetrics();
             int maxWidth = metrics.stringWidth(displayName);
             letterWidth = metrics.charWidth(helper.getColorChar(player.getPlayerColor()));
+            maxLetterWidth = metrics.charWidth('w');
             int maxDescent = metrics.getMaxAscent();
             int maxHeight = maxDescent + metrics.getMaxDescent();
             graphics.dispose();
@@ -266,8 +272,8 @@ class PlayerPainter extends GUIObject implements PlayerListener {
         }
     }
     private int getLineHeight() {
-        if (game.getNumberOfPlayers() < 3)
-            return frameHeight / 3;
+        if (game.getNumberOfPlayers() < 4)
+            return frameHeight / 4;
         else
             return frameHeight / game.getNumberOfPlayers();
     }

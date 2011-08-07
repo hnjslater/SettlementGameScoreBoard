@@ -69,11 +69,16 @@ class ScoreBoardKeyListener extends KeyAdapter {
             break;
             case WaitingForColorToAdd:
                 {
+                	try {
                     PlayerColor pc = helper.getPlayerColor(e.getKeyChar());
                     if (pc != null)
                         game.addPlayer(pc);
                     state = State.Entry;
                     board.setState(ScoreBoard.ScoreBoardState.DEFAULT);
+                	}
+                	catch (RulesBrokenException ex) {
+                		// not really worth doing anything here.
+                	}
                 }
             break;
             case WaitingForColorToDelete:
