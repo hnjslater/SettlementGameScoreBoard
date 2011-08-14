@@ -32,251 +32,251 @@ import ui.Controller;
 public class SetupScreen {
 
 
-	private Controller controller;
-	private Game game;
-	private Object mainLock;
-	private boolean running;
-	private Map<PlayerColor, JCheckBox> playerPlaying;
-	private Map<PlayerColor, JTextField> playerNames;
-	private JTextField winningVP;
-	private boolean firstRun;
-	public SetupScreen(Controller controller, Game game) {
-		this.controller = controller;
-		this.game = game;
-		this.mainLock = new Object();
-		this.playerPlaying = new HashMap<PlayerColor, JCheckBox>();
-		this.playerNames = new HashMap<PlayerColor, JTextField>();
-		this.firstRun = true;
-	}
+    private Controller controller;
+    private Game game;
+    private Object mainLock;
+    private boolean running;
+    private Map<PlayerColor, JCheckBox> playerPlaying;
+    private Map<PlayerColor, JTextField> playerNames;
+    private JTextField winningVP;
+    private boolean firstRun;
+    public SetupScreen(Controller controller, Game game) {
+	this.controller = controller;
+	this.game = game;
+	this.mainLock = new Object();
+	this.playerPlaying = new HashMap<PlayerColor, JCheckBox>();
+	this.playerNames = new HashMap<PlayerColor, JTextField>();
+	this.firstRun = true;
+    }
 
-	public void run() {
-		controller.setFullScreen(false);
-		this.running = true;
+    public void run() {
+	controller.setFullScreen(false);
+	this.running = true;
 
-		JPanel main = new JPanel(new GridBagLayout());
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		gbc.weightx = 1;
-		gbc.anchor = GridBagConstraints.NORTH;
+	JPanel main = new JPanel(new GridBagLayout());
+	GridBagConstraints gbc = new GridBagConstraints();
+	gbc.gridwidth = GridBagConstraints.REMAINDER;
+	gbc.weightx = 1;
+	gbc.anchor = GridBagConstraints.NORTH;
 
-		GridBagConstraints panelConstraints = (GridBagConstraints) gbc.clone();
-		panelConstraints.fill = GridBagConstraints.BOTH;
-		panelConstraints.weighty = 1;
+	GridBagConstraints panelConstraints = (GridBagConstraints) gbc.clone();
+	panelConstraints.fill = GridBagConstraints.BOTH;
+	panelConstraints.weighty = 1;
 
 
-		JButton doneButton;
-		if (firstRun)
-			doneButton = new JButton("Begin Playing");
-		else
-			doneButton = new JButton("Resume Playing");
-		doneButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				done();
-			}
-		});
+	JButton doneButton;
+	if (firstRun)
+	    doneButton = new JButton("Begin Playing");
+	else
+	    doneButton = new JButton("Resume Playing");
+	doneButton.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent ae) {
+		done();
+	    }
+	});
 
-		main.add(makeGamePanel(), panelConstraints);
-		main.add(makePlayerPanel(), panelConstraints);
-		main.add(doneButton, gbc);
+	main.add(makeGamePanel(), panelConstraints);
+	main.add(makePlayerPanel(), panelConstraints);
+	main.add(doneButton, gbc);
 
-		controller.getJFrame().setContentPane(main);
-		controller.getJFrame().pack();
+	controller.getJFrame().setContentPane(main);
+	controller.getJFrame().pack();
 
-		while (running) {
-			try {
-				synchronized(mainLock) {
-					mainLock.wait();
-				}
-			}
-			catch (InterruptedException ex) {
-				// Don't mind being interrupted.
-			}
-		}
-		controller.setFullScreen(true);
-		firstRun = false;
-	}
-
-	private JPanel makePlayerPanel() {
-		JPanel players = new JPanel(new GridBagLayout());
-		players.setBorder(BorderFactory.createTitledBorder("Players"));
-
-		PlayerColor[] playerColors = PlayerColor.values();
-		
-		Arrays.sort(playerColors,0, playerColors.length, new Comparator<PlayerColor>() {
-			@Override
-			public int compare(PlayerColor o1, PlayerColor o2) {
-				// TODO Auto-generated method stub
-				return o1.toString().compareTo(o2.toString());
-			}
-		});
-		
-		for (PlayerColor pc : playerColors) {
-			if (!pc.equals(PlayerColor.None)) {
-				final JCheckBox checkbox = new JCheckBox(pc.toString());
-				final JTextField textfield = new JTextField(pc.toString(), 30);
-
-				if (game.getPlayer(pc) != null) {
-					checkbox.setSelected(true);
-					textfield.setText(game.getPlayer(pc).getName());
-					textfield.setEnabled(true);
-				}
-				else {
-					checkbox.setSelected(false);
-					textfield.setEnabled(false);
-				}
-
-				checkbox.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent ae) {
-						textfield.setEnabled(checkbox.isSelected());
-					}
-				});
-				{
-					GridBagConstraints gbc = new GridBagConstraints();
-					gbc.anchor = GridBagConstraints.WEST;
-					gbc.weightx = 40;
-					players.add(checkbox, gbc);
-				}
-				{
-					GridBagConstraints gbc = new GridBagConstraints();
-					gbc.gridwidth = GridBagConstraints.REMAINDER;
-					gbc.fill = GridBagConstraints.HORIZONTAL;
-					gbc.weightx = 60;
-					players.add(textfield, gbc);
-				}
-
-				playerPlaying.put(pc, checkbox);
-				playerNames.put(pc, textfield);
-			}
-		}
-		{
-			GridBagConstraints gbc = new GridBagConstraints();
-			gbc.weighty = 1;
-			players.add(new JPanel(), gbc);
-		}
-		return players;
-	}
-
-	public JPanel makeGamePanel() {	
-		JPanel gamePanel = new JPanel(new GridBagLayout());
-		gamePanel.setBorder(BorderFactory.createTitledBorder("Game Properties"));
-
-		{
-			GridBagConstraints gbc = new GridBagConstraints();
-			gbc.weightx = 40;
-			gbc.anchor = GridBagConstraints.WEST;
-			gamePanel.add(new JLabel("Winning Victory Points"), gbc);
-		}
-
-		final JTextField winningVP = new JTextField(3);
-		this.winningVP = winningVP;
-		{
-			GridBagConstraints gbc = new GridBagConstraints();
-			gbc.insets = new Insets(0, 10, 0, 10);
-			gbc.weightx = 10;
-			gamePanel.add(winningVP, gbc);	
-		}
-		
-		// Change the color of the background of the VP textbox if a non-number is entered
-		winningVP.getDocument().addDocumentListener(new DocumentListener() {
-			private Color originalColor = winningVP.getBackground();
-			public void textChanged() {
-				try {
-					Integer.parseInt(winningVP.getText());
-					winningVP.setBackground(originalColor);
-				}
-				catch (Exception ex) {
-					winningVP.setBackground(Color.PINK);
-				}
-			}
-			
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				textChanged();
-			}
-			
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				textChanged();
-			}
-			
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				textChanged();	
-			}
-		});
-
-		final JSlider slider = new JSlider(8,24);
-		slider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				winningVP.setText(Integer.toString(slider.getValue()));
-
-			}
-		});
-		
-		slider.setValue(game.getWinningVP());
-		slider.setPaintTicks(true);
-		slider.setMajorTickSpacing(2);
-		slider.setMinorTickSpacing(1);
-		slider.setSnapToTicks(true);
-
-		{
-			GridBagConstraints gbc = new GridBagConstraints();
-			gbc.fill = GridBagConstraints.HORIZONTAL;
-			gbc.gridwidth = GridBagConstraints.REMAINDER;
-			gbc.weightx = 50;
-
-			gamePanel.add(slider, gbc);
-		}
-		{
-			GridBagConstraints gbc = new GridBagConstraints();
-			gbc.weighty = 1;
-			gamePanel.add(new JPanel(), gbc);
-		}
-
-		return gamePanel;
-	}
-
-	public void done() {
-		for (PlayerColor pc : PlayerColor.values()) {
-			if (!pc.equals(PlayerColor.None)) {
-				// is the player in the game right now?
-				boolean playerCurrent = (game.getPlayer(pc) != null);
-
-				// should they be?
-				boolean playerShould = playerPlaying.get(pc).isSelected();
-
-				// if the player isn't in the game, get them in there.
-				if (!playerCurrent && playerShould) {
-					try {
-					game.addPlayer(pc);
-					}
-					catch (RulesBrokenException ex) {
-						throw new RuntimeException(ex);
-					}
-				}
-				// if they're playing and they shouldn't be, pull them out
-				else if (playerCurrent && !playerShould) {
-					game.removePlayer(pc);
-				}
-				// now that's sorted, best set their name.
-				if (playerShould) {
-					game.getPlayer(pc).setName(playerNames.get(pc).getText());
-				}
-			}
-		}
-		try {
-			game.setWinningVP(Integer.parseInt(winningVP.getText()));
-            stop();
-		}
-		catch (NumberFormatException ex) {
-		}
-	}
-
-	public void stop() {
+	while (running) {
+	    try {
 		synchronized(mainLock) {
-			running = false;
-			mainLock.notifyAll();
+		    mainLock.wait();
 		}
+	    }
+	    catch (InterruptedException ex) {
+		// Don't mind being interrupted.
+	    }
 	}
+	controller.setFullScreen(true);
+	firstRun = false;
+    }
+
+    private JPanel makePlayerPanel() {
+	JPanel players = new JPanel(new GridBagLayout());
+	players.setBorder(BorderFactory.createTitledBorder("Players"));
+
+	PlayerColor[] playerColors = PlayerColor.values();
+
+	Arrays.sort(playerColors,0, playerColors.length, new Comparator<PlayerColor>() {
+	    @Override
+	    public int compare(PlayerColor o1, PlayerColor o2) {
+		// TODO Auto-generated method stub
+		return o1.toString().compareTo(o2.toString());
+	    }
+	});
+
+	for (PlayerColor pc : playerColors) {
+	    if (!pc.equals(PlayerColor.None)) {
+		final JCheckBox checkbox = new JCheckBox(pc.toString());
+		final JTextField textfield = new JTextField(pc.toString(), 30);
+
+		if (game.getPlayer(pc) != null) {
+		    checkbox.setSelected(true);
+		    textfield.setText(game.getPlayer(pc).getName());
+		    textfield.setEnabled(true);
+		}
+		else {
+		    checkbox.setSelected(false);
+		    textfield.setEnabled(false);
+		}
+
+		checkbox.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ae) {
+			textfield.setEnabled(checkbox.isSelected());
+		    }
+		});
+		{
+		    GridBagConstraints gbc = new GridBagConstraints();
+		    gbc.anchor = GridBagConstraints.WEST;
+		    gbc.weightx = 40;
+		    players.add(checkbox, gbc);
+		}
+		{
+		    GridBagConstraints gbc = new GridBagConstraints();
+		    gbc.gridwidth = GridBagConstraints.REMAINDER;
+		    gbc.fill = GridBagConstraints.HORIZONTAL;
+		    gbc.weightx = 60;
+		    players.add(textfield, gbc);
+		}
+
+		playerPlaying.put(pc, checkbox);
+		playerNames.put(pc, textfield);
+	    }
+	}
+	{
+	    GridBagConstraints gbc = new GridBagConstraints();
+	    gbc.weighty = 1;
+	    players.add(new JPanel(), gbc);
+	}
+	return players;
+    }
+
+    public JPanel makeGamePanel() {	
+	JPanel gamePanel = new JPanel(new GridBagLayout());
+	gamePanel.setBorder(BorderFactory.createTitledBorder("Game Properties"));
+
+	{
+	    GridBagConstraints gbc = new GridBagConstraints();
+	    gbc.weightx = 40;
+	    gbc.anchor = GridBagConstraints.WEST;
+	    gamePanel.add(new JLabel("Winning Victory Points"), gbc);
+	}
+
+	final JTextField winningVP = new JTextField(3);
+	this.winningVP = winningVP;
+	{
+	    GridBagConstraints gbc = new GridBagConstraints();
+	    gbc.insets = new Insets(0, 10, 0, 10);
+	    gbc.weightx = 10;
+	    gamePanel.add(winningVP, gbc);	
+	}
+
+	// Change the color of the background of the VP textbox if a non-number is entered
+	winningVP.getDocument().addDocumentListener(new DocumentListener() {
+	    private Color originalColor = winningVP.getBackground();
+	    public void textChanged() {
+		try {
+		    Integer.parseInt(winningVP.getText());
+		    winningVP.setBackground(originalColor);
+		}
+		catch (Exception ex) {
+		    winningVP.setBackground(Color.PINK);
+		}
+	    }
+
+	    @Override
+	    public void removeUpdate(DocumentEvent e) {
+		textChanged();
+	    }
+
+	    @Override
+	    public void insertUpdate(DocumentEvent e) {
+		textChanged();
+	    }
+
+	    @Override
+	    public void changedUpdate(DocumentEvent e) {
+		textChanged();	
+	    }
+	});
+
+	final JSlider slider = new JSlider(8,24);
+	slider.addChangeListener(new ChangeListener() {
+	    @Override
+	    public void stateChanged(ChangeEvent e) {
+		winningVP.setText(Integer.toString(slider.getValue()));
+
+	    }
+	});
+
+	slider.setValue(game.getWinningVP());
+	slider.setPaintTicks(true);
+	slider.setMajorTickSpacing(2);
+	slider.setMinorTickSpacing(1);
+	slider.setSnapToTicks(true);
+
+	{
+	    GridBagConstraints gbc = new GridBagConstraints();
+	    gbc.fill = GridBagConstraints.HORIZONTAL;
+	    gbc.gridwidth = GridBagConstraints.REMAINDER;
+	    gbc.weightx = 50;
+
+	    gamePanel.add(slider, gbc);
+	}
+	{
+	    GridBagConstraints gbc = new GridBagConstraints();
+	    gbc.weighty = 1;
+	    gamePanel.add(new JPanel(), gbc);
+	}
+
+	return gamePanel;
+    }
+
+    public void done() {
+	for (PlayerColor pc : PlayerColor.values()) {
+	    if (!pc.equals(PlayerColor.None)) {
+		// is the player in the game right now?
+		boolean playerCurrent = (game.getPlayer(pc) != null);
+
+		// should they be?
+		boolean playerShould = playerPlaying.get(pc).isSelected();
+
+		// if the player isn't in the game, get them in there.
+		if (!playerCurrent && playerShould) {
+		    try {
+			game.addPlayer(pc);
+		    }
+		    catch (RulesBrokenException ex) {
+			throw new RuntimeException(ex);
+		    }
+		}
+		// if they're playing and they shouldn't be, pull them out
+		else if (playerCurrent && !playerShould) {
+		    game.removePlayer(game.getPlayer(pc));
+		}
+		// now that's sorted, best set their name.
+		if (playerShould) {
+		    game.getPlayer(pc).setName(playerNames.get(pc).getText());
+		}
+	    }
+	}
+	try {
+	    game.setWinningVP(Integer.parseInt(winningVP.getText()));
+	    stop();
+	}
+	catch (NumberFormatException ex) {
+	}
+    }
+
+    public void stop() {
+	synchronized(mainLock) {
+	    running = false;
+	    mainLock.notifyAll();
+	}
+    }
 }

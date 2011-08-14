@@ -59,6 +59,7 @@ public class Player implements Comparable<Player> {
             if (vp_delta != -1) {
                 this.vp_times[getVP()] = sharedCount.getAndIncrement();
             }
+            
             raisePlayerVPChangedEvent();
            
         }
@@ -97,6 +98,7 @@ public class Player implements Comparable<Player> {
 
     }
 
+    
     public void add(Achievement a) {
         achievements.add(a);
         vp_times[getVP()] = sharedCount.getAndIncrement();
@@ -151,12 +153,17 @@ public class Player implements Comparable<Player> {
                 }
             }
     }
-    public void raisePlayerRankChangedEvent() {
+    void raisePlayerRankChangedEvent() {
             synchronized(playerListeners) {
                 for (PlayerListener p: playerListeners) {
                     p.playerRankChanged(new PlayerEvent(this));
                 }
             }
+    }
+    
+    public String toString() {
+	return "Player " + "(" + color.toString() + ")";
+    
     }
 }
 

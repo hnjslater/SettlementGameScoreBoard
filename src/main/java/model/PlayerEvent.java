@@ -16,5 +16,9 @@ public class PlayerEvent extends EventObject {
     public Player getPlayer() {
         return player;
     }
+
+    public boolean equals(Object o) {
+        return (o instanceof PlayerEvent && ((PlayerEvent)o).player.equals(player));
+    }
 }
 

@@ -15,31 +15,41 @@ public class Game implements PlayerListener, GameConstraints {
     private List<GameListener> gameListeners;
     private Player winner;
     private Map<PlayerColor,Player> playersByColor;
-    private Map<Achievement,PlayerColor> playersByAchievement;
+    private Map<Achievement,Player> playersByAchievement;
     private AtomicInteger sharedCount;
     private int maxVP = 10;
+    private PlayerFactory playerFactory;
 
     public Game() {
         this.playersByColor = new HashMap<PlayerColor,Player>();
-        this.playersByAchievement = new HashMap<Achievement,PlayerColor>();
+        this.playersByAchievement = new HashMap<Achievement,Player>();
         this.gameListeners = Collections.synchronizedList(new ArrayList<GameListener>());
         this.sharedCount = new AtomicInteger();
+        this.playerFactory = new PlayerFactory() {
+            public Player createPlayer(PlayerColor pc, AtomicInteger i, GameConstraints gc) {
+                return new Player(pc, i , gc);
+            }
+        };
     }
     public void addPlayer(PlayerColor color) throws RulesBrokenException {
         if (this.playersByColor.containsKey(color))
             throw new RulesBrokenException("Already have a player of that color");
-        Player player = new Player(color, sharedCount, this);
+        Player player = playerFactory.createPlayer(color, sharedCount, this);
         player.addPlayerListener(this);
         playersByColor.put(color,player);
         raisePlayerAddedEvent(new GameEvent(this, player));
     }
-    public void removePlayer(PlayerColor color) {
-        Player player = playersByColor.get(color);
+    public void setPlayerFactory(PlayerFactory pf) {
+	this.playerFactory = pf;
+    }
+    public void removePlayer(Player player) {
         if (Player.equals(getWinner(), player)) {
             winner = null;
             raiseWinnerChangedEvent(new GameEvent(this, null));
         }
-        playersByColor.remove(color);
+        playersByColor.remove(player.getPlayerColor());
+        for (Achievement a : player.getAchievements())
+            playersByAchievement.remove(a);
         raisePlayerRemovedEvent(new GameEvent(this, player));
     }
     public List<Player> getLeaderBoard() {
@@ -58,25 +68,23 @@ public class Game implements PlayerListener, GameConstraints {
         return playersByColor.size();
     }
 
-    public void setAchievement(PlayerColor color, Achievement achievement) {
-        // Check we're giving the achievement to a player who actually exists
-        if (playersByColor.containsKey(color)) {
+    public void setAchievement(Player player, Achievement achievement) {
+	System.out.print(player);
             if (playersByAchievement.containsKey(achievement)) {
-                playersByColor.get(playersByAchievement.get(achievement)).remove(achievement);
-
+                playersByAchievement.get(achievement).remove(achievement);
             }
-            playersByAchievement.put(achievement,color);
-            playersByColor.get(color).add(achievement);
-        }
+            playersByAchievement.put(achievement,player);
+            player.add(achievement);
+        
     }
-    public PlayerColor getAchievement(Achievement achievement) {
+    public Player getAchievement(Achievement achievement) {
         if (playersByAchievement.containsKey(achievement))
             return playersByAchievement.get(achievement);
         else
-            return PlayerColor.None;
+            return null;
     }
     public void removeAchievement(Achievement achievement) {
-        playersByColor.get(playersByAchievement.get(achievement)).remove(achievement);
+        playersByAchievement.get(achievement).remove(achievement);
         playersByAchievement.remove(achievement);
     }
     public int getChangeNo() {

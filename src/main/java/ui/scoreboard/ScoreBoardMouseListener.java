@@ -45,7 +45,7 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
                     }
                     else if (hz.operation == HotZone.ops.LA) {
                         if (hz.player != null) {
-                            game.setAchievement(hz.player.getPlayerColor(), Achievement.LargestArmy);
+                            game.setAchievement(hz.player, Achievement.LargestArmy);
                         }
                         else {
                             game.removeAchievement(Achievement.LargestArmy);
@@ -53,7 +53,7 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
                     }
                     else if (hz.operation == HotZone.ops.LR) {
                         if (hz.player != null) {
-                            game.setAchievement(hz.player.getPlayerColor(), Achievement.LongestRoad);
+                            game.setAchievement(hz.player, Achievement.LongestRoad);
                         }
                         else {
                             game.removeAchievement(Achievement.LongestRoad);

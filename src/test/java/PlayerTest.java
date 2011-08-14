@@ -3,6 +3,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import java.util.concurrent.atomic.AtomicInteger;
 import model.*;
+import static org.easymock.EasyMock.*;
 /**
  * Unit test for simple App.
  */
@@ -10,7 +11,7 @@ public class PlayerTest
     extends TestCase
 {
     /**
-     * Create the test case
+     * Create the test case		
      *
      * @param testName name of the test case
      */
@@ -28,37 +29,90 @@ public class PlayerTest
     }
 
     /**
-     * 3 players, one player gains 8 points, check winner
+     * Test renaming of Players including checking events are raised
      */
     public void testPlayerNaming() throws RulesBrokenException
     {
-        GameConstraints nothing = new GameConstraints() {
-            public void updateVP(Player p, int vp_delta) {}
-        };
-        // using atomic integer as it can be made final and thus passed into an annonymous class
-        // FIXME use a mock object
-        final AtomicInteger renamedEvents =  new AtomicInteger(0);
-        PlayerListener testListener = new PlayerListener() {
-            public void playerRenamed(PlayerEvent e) { renamedEvents.incrementAndGet(); };
-            public void playerVPChanged(PlayerEvent e) { };
-            public void playerRankChanged(PlayerEvent e) { };
-        };
+        GameConstraints mockConstraints = createMock(GameConstraints.class);
+        PlayerListener mockListener = createMock(PlayerListener.class);
+        Player p = new Player(PlayerColor.Blue, new AtomicInteger(), mockConstraints);
 
-        Player p = new Player(PlayerColor.Blue, new AtomicInteger(), nothing);
-        p.addPlayerListener(testListener);
+        mockListener.playerRenamed(new PlayerEvent(p));
+        mockListener.playerRenamed(new PlayerEvent(p));
+        replay(mockListener);
 
-        assertTrue (p.getName().equals(PlayerColor.Blue.toString()));
+        p.addPlayerListener(mockListener);
+
+        assertEquals (p.getName(), PlayerColor.Blue.toString());
 
         p.setName("BLAH");
 
-        assertTrue (p.getName().equals("BLAH"));
-        assertTrue (renamedEvents.get() == 1);
-
+        assertEquals (p.getName(), "BLAH");
 
         p.resetName();
 
-        assertTrue (p.getName().equals(PlayerColor.Blue.toString()));
-        assertTrue (renamedEvents.get() == 2);
+        assertEquals (p.getName(), PlayerColor.Blue.toString());
+
+        verify(mockListener);
+    }
+    
+    public void testPlayerVP() throws RulesBrokenException {
+        GameConstraints mockConstraints = createNiceMock(GameConstraints.class);
+        AtomicInteger changeCount = new AtomicInteger();
+        PlayerListener mockListener = createMock(PlayerListener.class);
+        
+        Player p = new Player(PlayerColor.Blue, changeCount, mockConstraints);
+        
+        mockListener.playerVPChanged(new PlayerEvent(p));
+        expectLastCall().times(4);
+                
+        replay(mockListener);
+        
+        p.addPlayerListener(mockListener);
+        
+        p.updateVP(+1);
+        p.updateVP(-1);
+        p.add(Achievement.LargestArmy);
+        p.remove(Achievement.LargestArmy);
+        
+        verify(mockListener);
+    }
+    
+    public void testPlayerComparing() throws RulesBrokenException {
+
+        GameConstraints mockConstraints = createNiceMock(GameConstraints.class);
+        AtomicInteger changeCount = new AtomicInteger();
+        
+        Player pB = new Player(PlayerColor.Blue, changeCount, mockConstraints);
+        Player pG = new Player(PlayerColor.Green, changeCount, mockConstraints);
+        
+        // sanity check
+        assertTrue (pB.compareTo(pB) == 0);
+        assertTrue (pG.compareTo(pG) == 0);
+        assertTrue (pB.compareTo(pG) != 0);
+        assertTrue (pG.compareTo(pB) != 0);
+        
+        // Give Blue some points
+        pB.updateVP(+1);
+        
+        // Now Green should be less than Blue
+        assertTrue (pB.compareTo(pG) < 0);
+        assertTrue (pG.compareTo(pB) > 0);
+        
+        // Put Green ahead;
+        pG.updateVP(+2);
+        
+        // Now Green should be more than Blue
+        assertTrue (pB.compareTo(pG) > 0);
+        assertTrue (pG.compareTo(pB) < 0);
+        
+        // Catch Blue up:
+        pB.updateVP(+1);
+        
+        // Green should still be ahead (as they got there first);
+        assertTrue (pB.compareTo(pG) > 0);
+        assertTrue (pG.compareTo(pB) < 0);        
+	
     }
 }
 

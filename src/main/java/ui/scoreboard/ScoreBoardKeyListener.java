@@ -37,8 +37,11 @@ class ScoreBoardKeyListener extends KeyAdapter {
                 try {
                     if (e.getKeyChar() == '0')
                         game.removeAchievement(achievementToSet);
-                    else
-                        game.setAchievement(helper.getPlayerColor(Character.toLowerCase(e.getKeyChar())), achievementToSet);
+                    else {
+                	Player p = game.getPlayer(helper.getPlayerColor(Character.toLowerCase(e.getKeyChar())));
+                	if (p != null)
+                	    game.setAchievement(p, achievementToSet);
+                    }
                 }
                 catch (Exception ex) {
 
@@ -84,8 +87,13 @@ class ScoreBoardKeyListener extends KeyAdapter {
             case WaitingForColorToDelete:
                 {
                     PlayerColor pc = helper.getPlayerColor(e.getKeyChar());
-                    if (pc != null)
-                        game.removePlayer(pc);
+                    if (pc != null) {
+                	Player p = game.getPlayer(pc);
+                	if (p != null) {
+                	    game.removePlayer(p);
+                	}
+                    }
+                        
                     state = State.Entry;
                     board.setState(ScoreBoard.ScoreBoardState.DEFAULT);
                 }
