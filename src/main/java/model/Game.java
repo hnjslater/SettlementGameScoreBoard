@@ -68,14 +68,11 @@ public class Game implements PlayerListener, GameConstraints {
         return playersByColor.size();
     }
 
-    public void setAchievement(Player player, Achievement achievement) {
-	System.out.print(player);
+    public void gainAchievement(Player player, Achievement achievement) throws RulesBrokenException {
             if (playersByAchievement.containsKey(achievement)) {
                 playersByAchievement.get(achievement).remove(achievement);
             }
             playersByAchievement.put(achievement,player);
-            player.add(achievement);
-        
     }
     public Player getAchievement(Achievement achievement) {
         if (playersByAchievement.containsKey(achievement))
@@ -83,8 +80,7 @@ public class Game implements PlayerListener, GameConstraints {
         else
             return null;
     }
-    public void removeAchievement(Achievement achievement) {
-        playersByAchievement.get(achievement).remove(achievement);
+    public void looseAchievement(Player player, Achievement achievement) {
         playersByAchievement.remove(achievement);
     }
     public int getChangeNo() {

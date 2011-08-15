@@ -99,12 +99,15 @@ public class Player implements Comparable<Player> {
     }
 
     
-    public void add(Achievement a) {
+    public void add(Achievement a) throws RulesBrokenException {
+	this.constraints.gainAchievement(this, a);
         achievements.add(a);
         vp_times[getVP()] = sharedCount.getAndIncrement();
+        
         raisePlayerVPChangedEvent();
     }
-    public void remove(Achievement a) {
+    public void remove(Achievement a) throws RulesBrokenException {
+	this.constraints.looseAchievement(this, a);
         achievements.remove(a);
         vp_times[getVP()] = -sharedCount.getAndIncrement();
         raisePlayerVPChangedEvent();
@@ -119,11 +122,11 @@ public class Player implements Comparable<Player> {
     }
 
     public boolean equals(Object o) {
-        return ((this == o) || ((o instanceof Player) && (((Player)o).color == this.color)));
+        return ((this == o) || ((o instanceof Player) && (((Player)o).getPlayerColor() == this.getPlayerColor())));
     }
 
     public static boolean equals(Player p1, Player p2) {
-        return ((p1 == p2) || (p1 != null) && (p2 != null)&& (p1.color == p2.color));
+        return ((p1 == p2) || (p1 != null) && (p2 != null) && (p1.getPlayerColor() == p2.getPlayerColor()));
     }
 
     public int hashCode() {
@@ -134,7 +137,7 @@ public class Player implements Comparable<Player> {
         this.playerListeners.add(p);
     }
 
-    public void removeGameListener(PlayerListener p) {
+    public void removePlayerListener(PlayerListener p) {
         this.playerListeners.remove(p);
     }
 

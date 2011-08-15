@@ -168,6 +168,8 @@ public class SetupScreen {
 	}
 
 	final JTextField winningVP = new JTextField(3);
+	final JSlider slider = new JSlider(8,24);
+	
 	this.winningVP = winningVP;
 	{
 	    GridBagConstraints gbc = new GridBagConstraints();
@@ -175,14 +177,26 @@ public class SetupScreen {
 	    gbc.weightx = 10;
 	    gamePanel.add(winningVP, gbc);	
 	}
-
+	
+	
+	final ChangeListener sliderListener = new ChangeListener() {
+	    @Override
+	    public void stateChanged(ChangeEvent e) {
+		winningVP.setText(Integer.toString(slider.getValue()));
+	    }
+	};
+	
 	// Change the color of the background of the VP textbox if a non-number is entered
 	winningVP.getDocument().addDocumentListener(new DocumentListener() {
 	    private Color originalColor = winningVP.getBackground();
 	    public void textChanged() {
 		try {
-		    Integer.parseInt(winningVP.getText());
+		    int max = Integer.parseInt(winningVP.getText());
 		    winningVP.setBackground(originalColor);
+		    slider.removeChangeListener(sliderListener);
+		    slider.setValue(max);
+		    slider.addChangeListener(sliderListener);
+		    
 		}
 		catch (Exception ex) {
 		    winningVP.setBackground(Color.PINK);
@@ -205,14 +219,10 @@ public class SetupScreen {
 	    }
 	});
 
-	final JSlider slider = new JSlider(8,24);
-	slider.addChangeListener(new ChangeListener() {
-	    @Override
-	    public void stateChanged(ChangeEvent e) {
-		winningVP.setText(Integer.toString(slider.getValue()));
+	
 
-	    }
-	});
+	
+	slider.addChangeListener(sliderListener);
 
 	slider.setValue(game.getWinningVP());
 	slider.setPaintTicks(true);

@@ -10,6 +10,10 @@ import static org.easymock.EasyMock.*;
 public class PlayerTest 
     extends TestCase
 {
+    
+    private GameConstraints mockConstraints;
+    private PlayerListener mockListener;
+    private AtomicInteger changeNo;
     /**
      * Create the test case		
      *
@@ -28,14 +32,19 @@ public class PlayerTest
         return new TestSuite( PlayerTest.class );
     }
 
+    @Override
+    protected void setUp() throws Exception {
+        mockConstraints = createMock(GameConstraints.class);
+        mockListener = createMock(PlayerListener.class);
+        changeNo = new AtomicInteger();
+    }
+    
     /**
      * Test renaming of Players including checking events are raised
      */
     public void testPlayerNaming() throws RulesBrokenException
     {
-        GameConstraints mockConstraints = createMock(GameConstraints.class);
-        PlayerListener mockListener = createMock(PlayerListener.class);
-        Player p = new Player(PlayerColor.Blue, new AtomicInteger(), mockConstraints);
+        Player p = new Player(PlayerColor.Blue, changeNo, mockConstraints);
 
         mockListener.playerRenamed(new PlayerEvent(p));
         mockListener.playerRenamed(new PlayerEvent(p));
@@ -43,25 +52,29 @@ public class PlayerTest
 
         p.addPlayerListener(mockListener);
 
+        // Check the default name works
         assertEquals (p.getName(), PlayerColor.Blue.toString());
 
+        // Can we change it (and does the right event fire?)
         p.setName("BLAH");
 
         assertEquals (p.getName(), "BLAH");
 
+        // Back to where we started (along with another event)
         p.resetName();
 
         assertEquals (p.getName(), PlayerColor.Blue.toString());
+        
+        // Check the remove works (the next setName shouldn't send an event)
+        p.removePlayerListener(mockListener);
+        
+        p.setName("MORE BLAHS");
 
         verify(mockListener);
     }
     
     public void testPlayerVP() throws RulesBrokenException {
-        GameConstraints mockConstraints = createNiceMock(GameConstraints.class);
-        AtomicInteger changeCount = new AtomicInteger();
-        PlayerListener mockListener = createMock(PlayerListener.class);
-        
-        Player p = new Player(PlayerColor.Blue, changeCount, mockConstraints);
+        Player p = new Player(PlayerColor.Blue, changeNo, mockConstraints);
         
         mockListener.playerVPChanged(new PlayerEvent(p));
         expectLastCall().times(4);
@@ -75,16 +88,21 @@ public class PlayerTest
         p.add(Achievement.LargestArmy);
         p.remove(Achievement.LargestArmy);
         
+        // check the remove works
+        p.removePlayerListener(mockListener);
+        
+        // none of these should pass events to mockListener:
+        p.updateVP(+1);
+        p.updateVP(-1);
+        p.add(Achievement.LargestArmy);
+        p.remove(Achievement.LargestArmy);
+        
         verify(mockListener);
     }
     
     public void testPlayerComparing() throws RulesBrokenException {
-
-        GameConstraints mockConstraints = createNiceMock(GameConstraints.class);
-        AtomicInteger changeCount = new AtomicInteger();
-        
-        Player pB = new Player(PlayerColor.Blue, changeCount, mockConstraints);
-        Player pG = new Player(PlayerColor.Green, changeCount, mockConstraints);
+        Player pB = new Player(PlayerColor.Blue, changeNo, mockConstraints);
+        Player pG = new Player(PlayerColor.Green, changeNo, mockConstraints);
         
         // sanity check
         assertTrue (pB.compareTo(pB) == 0);
@@ -113,6 +131,17 @@ public class PlayerTest
         assertTrue (pB.compareTo(pG) > 0);
         assertTrue (pG.compareTo(pB) < 0);        
 	
+    }
+    
+    public void testPlayerEquals() {
+        Player pB = new Player(PlayerColor.Blue, changeNo, mockConstraints);
+        Player pG = new Player(PlayerColor.Green, changeNo, mockConstraints);
+
+        assertEquals(pB,pB);
+        assertTrue(Player.equals(pB, pB));
+        
+        assertFalse(pB.equals(pG));
+        assertFalse(Player.equals(pB, pG));
     }
 }
 

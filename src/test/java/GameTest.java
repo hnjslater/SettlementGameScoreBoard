@@ -1,5 +1,4 @@
 import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import junit.framework.Test;
@@ -33,7 +32,6 @@ public class GameTest
 
     /**
      * 3 players, one player gains 8 points, check winner
-     * iffy, probably ought to involve mocks
      */
     public void test1Winner10VP() throws RulesBrokenException
     {
@@ -68,12 +66,43 @@ public class GameTest
 
         // So we should have a winner (as blue always reports it's VP as 10
         Player p = g.getPlayer(PlayerColor.Blue);
-        System.out.print(p);
         assertSame( p, g.getWinner() );
         
-        // so now if we get rid of the winning player, it should default to blue;
+        // so now if we get rid of the winning player, it should default to null;
         g.removePlayer(p);
         assertNull ( g.getWinner() );
     }
+    
+    public void testGameEvents() throws RulesBrokenException {
+	
+	final Player bluePlayer = createNiceMock(Player.class);
+	expect(bluePlayer.getPlayerColor()).andStubReturn(PlayerColor.Blue);
+	expect(bluePlayer.getAchievements()).andStubReturn(new HashSet<Achievement>());
+	replay(bluePlayer);
+	
+        PlayerFactory pf = new PlayerFactory() {
+	    @Override
+	    public Player createPlayer(PlayerColor playerColor, AtomicInteger integer, GameConstraints constraints) { 
+		return bluePlayer;
+	    }
+        };
+
+	Game g = new Game();
+	g.setPlayerFactory(pf);
+        
+        GameListener mockListener = createMock(GameListener.class);
+        mockListener.playerAdded(new GameEvent(g, bluePlayer));
+        mockListener.playerRemoved(new GameEvent(g, bluePlayer));
+        replay(mockListener);
+
+	g.addGameListener(mockListener);
+	g.addPlayer(PlayerColor.Blue);
+	g.removePlayer(g.getPlayer(PlayerColor.Blue));
+	
+	//verify(mockListener);
+	
+    }
+    
+    
 
 }
