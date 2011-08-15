@@ -99,7 +99,7 @@ public class GameTest
 	g.addPlayer(PlayerColor.Blue);
 	g.removePlayer(g.getPlayer(PlayerColor.Blue));
 	
-	//verify(mockListener);
+	verify(mockListener);
 	
     }
     
