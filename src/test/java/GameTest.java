@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
 import model.*;
 import static org.easymock.EasyMock.*;
 /**
@@ -12,6 +13,11 @@ import static org.easymock.EasyMock.*;
 public class GameTest 
     extends TestCase
 {
+    
+    private final PlayerFactory mockPlayerFactory;
+    private final Player bluePlayer;
+    private final Player redPlayer;
+    private final Player greenPlayer;
     /**
      * Create the test case
      *
@@ -20,6 +26,32 @@ public class GameTest
     public GameTest( String testName )
     {
         super( testName );
+
+        bluePlayer = createNiceMock(Player.class);
+        redPlayer = createNiceMock(Player.class);
+        greenPlayer = createNiceMock(Player.class);
+        
+        mockPlayerFactory = new PlayerFactory() {
+	    @Override
+	    public Player createPlayer(PlayerColor playerColor, AtomicInteger integer, GameConstraints constraints) {
+		switch (playerColor) {
+		case Blue:
+		    return bluePlayer;
+		case Red:
+		    return redPlayer;
+		case Green:
+		    return greenPlayer;
+		default:
+		    throw new RuntimeException("Not set up for that colour");
+		}		
+	    }
+	};
+    }
+    
+    private void beginReplay() {
+	replay(bluePlayer);
+	replay(redPlayer);
+	replay(greenPlayer);
     }
 
     /**
@@ -29,6 +61,63 @@ public class GameTest
     {
         return new TestSuite( GameTest.class );
     }
+    
+    @Override
+    protected void setUp() throws Exception {
+        Player[] players = {bluePlayer, redPlayer, greenPlayer};
+        for (Player p : players ) {
+            reset(p);
+            expect(p.getAchievements()).andStubReturn(new HashSet<Achievement>());
+        }
+        
+        expect(bluePlayer.getPlayerColor()).andStubReturn(PlayerColor.Blue);
+        expect(redPlayer.getPlayerColor()).andStubReturn(PlayerColor.Red);
+        expect(greenPlayer.getPlayerColor()).andStubReturn(PlayerColor.Green);
+        
+    }
+    
+    public void testAddingRemovingPlayers() throws RulesBrokenException
+    {
+	beginReplay();
+	
+	Game game = new Game();
+	assertEquals(game.getNumberOfPlayers(), 0);
+	assertNull(game.getPlayer(PlayerColor.Blue));
+	assertNull(game.getPlayer(PlayerColor.Green));
+	
+	game.addPlayer(PlayerColor.Blue);
+	assertEquals(game.getNumberOfPlayers(), 1);
+	assertNotNull(game.getPlayer(PlayerColor.Blue));
+	assertNull(game.getPlayer(PlayerColor.Green));
+	
+	game.addPlayer(PlayerColor.Green);
+	assertEquals(game.getNumberOfPlayers(), 2);
+	assertNotNull(game.getPlayer(PlayerColor.Blue));
+	assertNotNull(game.getPlayer(PlayerColor.Green));
+	
+	game.removePlayer(game.getPlayer(PlayerColor.Blue));
+	assertEquals(game.getNumberOfPlayers(), 1);
+	assertNull(game.getPlayer(PlayerColor.Blue));
+	assertNotNull(game.getPlayer(PlayerColor.Green));
+	
+	game.removePlayer(game.getPlayer(PlayerColor.Green));
+	assertEquals(game.getNumberOfPlayers(), 0);
+	assertNull(game.getPlayer(PlayerColor.Blue));
+	assertNull(game.getPlayer(PlayerColor.Green));
+    }
+    public void testPlayerUniqueness() throws RulesBrokenException
+    {
+	beginReplay();
+	Game game = new Game();
+	game.addPlayer(PlayerColor.Blue);
+	try {
+	    game.addPlayer(PlayerColor.Blue);
+	    fail("Expected Rules Broken Exception");
+	}
+	catch (RulesBrokenException ex) {
+	
+	}
+    }
 
     /**
      * 3 players, one player gains 8 points, check winner
@@ -36,27 +125,15 @@ public class GameTest
     public void test1Winner10VP() throws RulesBrokenException
     {
 	
-	// Could maybe do this with an Answer?
-        PlayerFactory pf = new PlayerFactory() {
-	    @Override
-	    public Player createPlayer(PlayerColor playerColor, AtomicInteger integer, GameConstraints constraints) {
-		Player p =  createNiceMock(Player.class);
-		if (playerColor.equals(PlayerColor.Blue)) {
-		    expect(p.getVP()).andStubReturn(10);
-		}
-		else {
-		    expect(p.getVP()).andStubReturn(2);
-		}
-		expect(p.getPlayerColor()).andStubReturn(playerColor);
-		expect(p.getAchievements()).andStubReturn(new HashSet<Achievement>());
-		replay(p);
-		return p;
-	    }
-	};
+	expect(bluePlayer.getVP()).andStubReturn(10);
+	expect(redPlayer.getVP()).andStubReturn(2);
+	expect(greenPlayer.getVP()).andStubReturn(2);
 	
+	beginReplay();
        
-        Game g = new Game();
-        g.setPlayerFactory(pf);
+
+	Game g = new Game();
+        g.setPlayerFactory(mockPlayerFactory);
         g.addPlayer(PlayerColor.Blue);
         g.addPlayer(PlayerColor.Red);
         g.addPlayer(PlayerColor.Green);
@@ -64,7 +141,7 @@ public class GameTest
         // Little hack to make sure the setWinner logic in game is actually run.
         g.playerVPChanged(new PlayerEvent(g.getPlayer(PlayerColor.Blue)));
 
-        // So we should have a winner (as blue always reports it's VP as 10
+        // So we should have a winner (as blue always reports its VP as 10
         Player p = g.getPlayer(PlayerColor.Blue);
         assertSame( p, g.getWinner() );
         
@@ -75,20 +152,10 @@ public class GameTest
     
     public void testGameEvents() throws RulesBrokenException {
 	
-	final Player bluePlayer = createNiceMock(Player.class);
-	expect(bluePlayer.getPlayerColor()).andStubReturn(PlayerColor.Blue);
-	expect(bluePlayer.getAchievements()).andStubReturn(new HashSet<Achievement>());
-	replay(bluePlayer);
-	
-        PlayerFactory pf = new PlayerFactory() {
-	    @Override
-	    public Player createPlayer(PlayerColor playerColor, AtomicInteger integer, GameConstraints constraints) { 
-		return bluePlayer;
-	    }
-        };
+	beginReplay();	
 
 	Game g = new Game();
-	g.setPlayerFactory(pf);
+	g.setPlayerFactory(mockPlayerFactory);
         
         GameListener mockListener = createMock(GameListener.class);
         mockListener.playerAdded(new GameEvent(g, bluePlayer));
@@ -102,6 +169,8 @@ public class GameTest
 	verify(mockListener);
 	
     }
+    
+
     
     
 

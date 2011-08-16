@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
  
 public class Game implements PlayerListener, GameConstraints {
-    private Integer change_no = 0;
     private List<GameListener> gameListeners;
     private Player winner;
     private Map<PlayerColor,Player> playersByColor;
@@ -83,13 +82,6 @@ public class Game implements PlayerListener, GameConstraints {
     public void looseAchievement(Player player, Achievement achievement) {
         playersByAchievement.remove(achievement);
     }
-    public int getChangeNo() {
-        synchronized(change_no) {
-            return (int)(++change_no);
-        }
-    }
-
-
     public void addGameListener(GameListener g) {
         this.gameListeners.add(g);
     }
