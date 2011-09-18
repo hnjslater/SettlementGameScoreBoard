@@ -92,6 +92,7 @@ public class SetupScreen {
 		// Don't mind being interrupted.
 	    }
 	}
+	controller.getJFrame().getContentPane().removeAll();
 	controller.setFullScreen(true);
 	firstRun = false;
     }

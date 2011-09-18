@@ -33,12 +33,14 @@ public class Controller {
         return frame;
     }
 
-    public void setFullScreen(boolean fullscreen) {
+    public boolean setFullScreen(boolean fullscreen) {
         synchronized(frameLock) {
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             GraphicsDevice gs = ge.getDefaultScreenDevice();
+            
+            boolean fsTargetState = this.fullscreen != (fullscreen && gs.isFullScreenSupported());
 
-            if (frame == null || this.fullscreen != (fullscreen && gs.isFullScreenSupported())) {
+            if (frame == null || this.fullscreen != fsTargetState) {
                 // Firstly lets tidy up that old frame:
                 if (frame != null) {
                     frame.setVisible(false);
@@ -70,6 +72,7 @@ public class Controller {
                 frame.createBufferStrategy(2);
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             }
+            return fsTargetState;
         }
     }
 

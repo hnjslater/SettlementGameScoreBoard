@@ -24,6 +24,8 @@ class ScoreBoardHelper {
         charToPlayerColor.put('o', PlayerColor.Orange);
         charToPlayerColor.put('w', PlayerColor.White);
         charToPlayerColor.put('b', PlayerColor.Blue);
+        charToPlayerColor.put('d',PlayerColor.Wood);
+        charToPlayerColor.put('k', PlayerColor.Black);
 
         for (Map.Entry<Character,PlayerColor> e : charToPlayerColor.entrySet() ) {
             playerColorToChar.put(e.getValue(),e.getKey());
@@ -60,6 +62,10 @@ class ScoreBoardHelper {
             case Orange:
 //                return new Color(204,85,0);
                 return Color.ORANGE;
+            case Wood:
+        	return new Color(228, 217, 111);
+            case Black:
+        	return Color.BLACK;
             default: 
                 return new Color(200,200,200);
         }

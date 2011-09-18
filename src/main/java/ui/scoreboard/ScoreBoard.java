@@ -43,6 +43,7 @@ public class ScoreBoard implements GameListener {
     private boolean fullScreen = false;
     private boolean isAnimating = true;
     private Player winner;
+    private final Object winnerLock = new Object();
     private List<GUIObject> guiObjects;
     private List<HotZone> hotZones;
     private PlayerPainterFactory factory;
@@ -178,12 +179,13 @@ public class ScoreBoard implements GameListener {
                 guiObjects.removeAll(toremove);
             }
 
-
-            if (guiObjects.size() < 20  && winner != null) {
-                int startx = (int)(Math.floor(Math.random() * width));
-                int starty = (int)(Math.floor(Math.random() * height));
-                for (int i = 0; i < 30; i++) {
-                    guiObjects.add(new Particle(startx,starty,helper.getGraphicsColor(winner.getPlayerColor()),time));
+            synchronized(winnerLock) {
+                if (guiObjects.size() < 20  && winner != null) {
+                    int startx = (int)(Math.floor(Math.random() * width));
+                    int starty = (int)(Math.floor(Math.random() * height));
+                    for (int i = 0; i < 30; i++) {
+                        guiObjects.add(new Particle(startx,starty,helper.getGraphicsColor(winner.getPlayerColor()),time));
+                    }
                 }
             }
 
@@ -211,12 +213,18 @@ public class ScoreBoard implements GameListener {
                 renderLoop();
             }
         };
-        fullScreen = false;
-        toggleFullScreen();
+        fullScreen = controller.setFullScreen(true);
+        frame = controller.getJFrame();
+        frame.addKeyListener(keyController);
+        frame.addMouseListener(mouseController);
+        frame.addMouseMotionListener(mouseController);
         graphicsThread.start();
         tickThread.start();
         graphicsThread.join();
         tickThread.join();
+        frame.removeKeyListener(keyController);
+        frame.removeMouseListener(mouseController);
+        frame.removeMouseMotionListener(mouseController);
 
     }
 
@@ -228,7 +236,7 @@ public class ScoreBoard implements GameListener {
             running = false;
         }
     }
-
+/*
     public synchronized void toggleFullScreen() {
         synchronized(controller.getFrameLock()) {
             controller.setFullScreen(!fullScreen);
@@ -239,14 +247,19 @@ public class ScoreBoard implements GameListener {
             frame.addMouseMotionListener(mouseController);
         }
     }
-
+*/
 
     private synchronized void paint () {
         BufferStrategy bf = frame.getBufferStrategy();
         Graphics graphics = bf.getDrawGraphics();
 
         // background
-        graphics.setColor( java.awt.Color.BLACK );
+        if (game.getWinner() != null && game.getWinner().getPlayerColor().equals(PlayerColor.Black)) {
+            graphics.setColor( java.awt.Color.WHITE );
+        }
+        else {
+            graphics.setColor( java.awt.Color.BLACK );
+        }
         graphics.fillRect( 0, 0, frame.getWidth(),frame.getHeight() );
 
         // FIXME a bit iffy if not fullscreen
@@ -278,7 +291,26 @@ public class ScoreBoard implements GameListener {
     }
 
     public void winnerChanged(GameEvent wce) {
+	synchronized (winnerLock) {
+	boolean bgColorChanged = false;
+	if ((winner != null && winner.getPlayerColor().equals(PlayerColor.Black)) || (wce.getPlayer() != null && wce.getPlayer().getPlayerColor().equals(PlayerColor.Black)))
+	    bgColorChanged = true;
         winner = wce.getPlayer();
+        if (bgColorChanged) {
+            Player white = game.getPlayer(PlayerColor.White);
+            if (white != null) {
+                synchronized(guiObjects) {
+                    for (GUIObject o : guiObjects) {
+                        if (o instanceof PlayerPainter && ((PlayerPainter)o).player.equals(white)) {
+                            o.invalidate();
+                        }
+                    }
+                }
+            }
+        	
+        }
+	}
+            
     }
 
     public void playerRemoved(GameEvent e) {

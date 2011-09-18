@@ -6,5 +6,7 @@ package model;
         Blue,
         White,
         Green,
-        Orange 
+        Orange,
+        Black,
+        Wood
     }
