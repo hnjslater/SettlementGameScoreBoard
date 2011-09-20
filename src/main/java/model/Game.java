@@ -143,16 +143,13 @@ public class Game implements PlayerListener, GameConstraints {
             }
         }
     }
-    public void updateVP(Player p, int vp_delta) {
+    public void updateVP(Player p, int new_vp) {
         if (getWinner() != null) {
-            if (!getWinner().equals(p))
-                throw new RuntimeException("No!");
-            else if (vp_delta > 0)
-                throw new RuntimeException("No!");
-                
+            if (!getWinner().equals(p) || new_vp > p.getVP())
+                throw new RuntimeException("The game has finished.");
         }
-        if (p.getSettlementVP() + vp_delta < 2)
-            throw new RuntimeException("No1");
+        if (new_vp < 2)
+            throw new RuntimeException("Settlement VPs cannot be less than 2.");
 
     }
 }

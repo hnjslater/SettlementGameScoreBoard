@@ -1,3 +1,4 @@
+import webservice.webservice;
 import model.*;
 class Main {
 
@@ -13,6 +14,8 @@ public static void main(String args[]) throws Exception {
 	        game.addPlayer(PlayerColor.White);
 	        
 	        ui.Controller con = new ui.Controller(game);
+	        webservice ws = new webservice(game);
+	        ws.start();
         
             con.run();
         }

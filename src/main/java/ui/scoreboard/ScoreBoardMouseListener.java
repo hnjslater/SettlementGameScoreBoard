@@ -38,10 +38,10 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
             for (HotZone hz : hotZones) {
                 if (hz.zone.contains(me.getPoint())) {
                     if (hz.operation == HotZone.ops.INC) {
-                        hz.player.updateVP(+1);
+                        hz.player.setVP(hz.player.getVP()+1);
                     }
                     else if (hz.operation == HotZone.ops.DEC) {
-                        hz.player.updateVP(-1);
+                        hz.player.setVP(hz.player.getVP()-1);
                     }
                     else if (hz.operation == HotZone.ops.LA) {
                         if (hz.player != null) {

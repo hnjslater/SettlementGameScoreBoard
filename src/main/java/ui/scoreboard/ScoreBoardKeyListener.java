@@ -146,7 +146,7 @@ class ScoreBoardKeyListener extends KeyAdapter {
                         Player p = game.getPlayer(helper.getPlayerColor(e.getKeyChar()));
 
                         if (game.getWinner() == null || game.getWinner() == p) {
-                            p.updateVP(updateAmount);
+                            p.setVP(p.getVP() + updateAmount);
                         }
                     }
                     catch (Exception ex) {

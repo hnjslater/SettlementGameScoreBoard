@@ -51,12 +51,12 @@ public class Player implements Comparable<Player> {
     }
 
     /** Updates the this.vp and vp_times (unless VP == -1). */ 
-    public void updateVP(int vp_delta) throws RulesBrokenException {
+    public void setVP(int newVP) throws RulesBrokenException {
         synchronized(vp_lock) {
-            constraints.updateVP(this, vp_delta);
-            this.vp += vp_delta;
+            constraints.updateVP(this, newVP);
+            this.vp = newVP;
             // if the player points has changed, best update vp_times
-            if (vp_delta != -1) {
+            if (newVP != -1) {
                 this.vp_times[getVP()] = sharedCount.getAndIncrement();
             }
             

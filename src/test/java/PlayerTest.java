@@ -77,14 +77,13 @@ public class PlayerTest
         Player p = new Player(PlayerColor.Blue, changeNo, mockConstraints);
         
         mockListener.playerVPChanged(new PlayerEvent(p));
-        expectLastCall().times(4);
+        expectLastCall().times(3);
                 
         replay(mockListener);
         
         p.addPlayerListener(mockListener);
         
-        p.updateVP(+1);
-        p.updateVP(-1);
+        p.setVP(10);
         p.add(Achievement.LargestArmy);
         p.remove(Achievement.LargestArmy);
         
@@ -92,8 +91,7 @@ public class PlayerTest
         p.removePlayerListener(mockListener);
         
         // none of these should pass events to mockListener:
-        p.updateVP(+1);
-        p.updateVP(-1);
+        p.setVP(12);
         p.add(Achievement.LargestArmy);
         p.remove(Achievement.LargestArmy);
         
@@ -111,21 +109,21 @@ public class PlayerTest
         assertTrue (pG.compareTo(pB) != 0);
         
         // Give Blue some points
-        pB.updateVP(+1);
+        pB.setVP(3);
         
         // Now Green should be less than Blue
         assertTrue (pB.compareTo(pG) < 0);
         assertTrue (pG.compareTo(pB) > 0);
         
         // Put Green ahead;
-        pG.updateVP(+2);
+        pG.setVP(4);
         
         // Now Green should be more than Blue
         assertTrue (pB.compareTo(pG) > 0);
         assertTrue (pG.compareTo(pB) < 0);
         
         // Catch Blue up:
-        pB.updateVP(+1);
+        pB.setVP(4);
         
         // Green should still be ahead (as they got there first);
         assertTrue (pB.compareTo(pG) > 0);
