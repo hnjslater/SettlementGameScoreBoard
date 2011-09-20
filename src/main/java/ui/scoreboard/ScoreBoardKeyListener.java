@@ -126,7 +126,10 @@ class ScoreBoardKeyListener extends KeyAdapter {
                     board.setState(ScoreBoard.ScoreBoardState.SELECT_PLAYER_TO_DELETE);
                 }
                 else if (e.getKeyChar() == 'h') {
-                    board.setShowHelp(!board.getShowHelp());
+                    state = State.WaitingForAchievement;
+                    achievementToSet = Achievement.HarbourMaster;
+                    board.setStateAchievement(Achievement.HarbourMaster);
+                    //board.setShowHelp(!board.getShowHelp());
                 }
                 else if (e.getKeyChar() == 'c') {
                     board.setShowColorHelp(!board.getShowColorHelp());
