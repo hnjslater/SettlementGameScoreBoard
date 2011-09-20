@@ -1,0 +1,110 @@
+<html>
+<head>
+<title>
+Settlement Controls
+</title>
+
+ <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>          
+ <script type="text/javascript">                                         
+   // we will add our javascript code here                                     
+ </script>
+
+</head>
+<body>
+<script>
+     $(document).ready(function(){
+
+        $.ajax({
+          url: '/',
+          datatype: "xml",
+          success: function( xml ) {
+              $(xml).find('player').each(function(){
+                  // alert($(this).attr("name"));
+                    $('#playercolor')
+                        .append('<option value="' + $(this).attr("color") + '">' +  $(this).attr("name") + "</option>") })
+                }
+          })
+
+        $('#minus-one').click(function() {
+            var playercolor = $('#playercolor option:selected').val();
+
+            $.ajax({ 
+                url: "/players/" + playercolor,
+                datatype: "xml",
+                success: function ( xml ) {
+                    $.ajax({ 
+                        type: "POST",
+                        url: "/players/" + playercolor,
+                        data: '<player settlement_points="' + (parseInt($(xml).find('player').attr("victory_points")) - 1) + '"></player>',
+                        });
+                }
+                });
+
+            return false;
+        });
+
+        $('#plus-one').click(function() {
+            var playercolor = $('#playercolor option:selected').val();
+
+            $.ajax({ 
+                url: "/players/" + playercolor,
+                datatype: "xml",
+                success: function ( xml ) {
+                    $.ajax({ 
+                        type: "POST",
+                        url: "/players/" + playercolor,
+                        data: '<player settlement_points="' + (parseInt($(xml).find('player').attr("victory_points")) + 1) + '"></player>',
+                        });
+                }
+                });
+
+            return false;
+        });
+
+        $('#longest-road').click(function() {
+            var playercolor = $('#playercolor option:selected').val();
+
+                    $.ajax({ 
+                        type: "POST",
+                        url: "/players/" + playercolor + "/achievements/LongestRoad",
+                        });
+
+            return false;
+        });
+
+
+        $('#largest-army').click(function() {
+            var playercolor = $('#playercolor option:selected').val();
+
+                    $.ajax({ 
+                        type: "POST",
+                        url: "/players/" + playercolor + "/achievements/LargestArmy",
+                        });
+
+            return false;
+        });
+
+
+        $('#harbour-master').click(function() {
+            var playercolor = $('#playercolor option:selected').val();
+
+                    $.ajax({ 
+                        type: "POST",
+                        url: "/players/" + playercolor + "/achievements/HarbourMaster",
+                        });
+
+            return false;
+        });
+
+        });
+</script>
+<form>
+<select id="playercolor"></select><br />
+<button id="minus-one">-1</button>
+<button id="plus-one">+1</button><br />
+<button id="longest-road">Longest Road</button></br />
+<button id="largest-army">Largest Army</button></br />
+<button id="harbour-master">Harbour Master</button></br />
+</form>
+</body>
+</html>
