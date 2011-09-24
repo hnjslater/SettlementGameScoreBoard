@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.event.MouseInputListener;
@@ -64,7 +65,7 @@ public class ScoreBoard implements GameListener {
 		this.game = game;
 		this.controller = controller;
 
-		guiObjects = Collections.synchronizedList(new LinkedList<GUIObject>());
+		guiObjects = new CopyOnWriteArrayList<GUIObject>();
 		this.factory = new PlayerPainterFactory();
 
 
@@ -97,11 +98,10 @@ public class ScoreBoard implements GameListener {
 	}
 
 	public void setShowMouseControls(boolean showMouseControls) {
-		synchronized(guiObjects) {
 			for (GUIObject o : guiObjects) {
 				o.setShowMouseAffordances(showMouseControls);
 			}
-		}
+		
 	}
 
 	public boolean getShowMouseControls() {
@@ -121,22 +121,18 @@ public class ScoreBoard implements GameListener {
 		//"Editing " + playerColor.toString() + ".";
 
 		PlayerPainter painter = null;
-		synchronized(guiObjects) {
-			for (GUIObject o : guiObjects) {
-				if (o instanceof PlayerPainter && ((PlayerPainter)o).player.getPlayerColor() ==  playerColor) {
-					painter = (PlayerPainter)o;
-				}
+		for (GUIObject o : guiObjects) {
+			if (o instanceof PlayerPainter && ((PlayerPainter)o).player.getPlayerColor() ==  playerColor) {
+				painter = (PlayerPainter)o;
 			}
 		}
 		painter.setEditing(true);
 	}
 
 	private void finishEditing() {
-		synchronized(guiObjects) {
-			for (GUIObject o : guiObjects) {
-				if (o instanceof PlayerPainter) {
-					((PlayerPainter)o).setEditing(false);
-				}
+		for (GUIObject o : guiObjects) {
+			if (o instanceof PlayerPainter) {
+				((PlayerPainter)o).setEditing(false);
 			}
 		}
 	}
@@ -169,16 +165,14 @@ public class ScoreBoard implements GameListener {
 
 
 			long time = (new Date()).getTime();
-			synchronized(guiObjects) { 
 
-				List<GUIObject> toremove = new ArrayList<GUIObject>();
-				for (GUIObject p : guiObjects) {
-					if ((p.getY(time) > height || p.getX(time) < 0 || p.getX(time) > width) && p instanceof Particle) {
-						toremove.add(p);
-					}
+			List<GUIObject> toremove = new ArrayList<GUIObject>();
+			for (GUIObject p : guiObjects) {
+				if ((p.getY(time) > height || p.getX(time) < 0 || p.getX(time) > width) && p instanceof Particle) {
+					toremove.add(p);
 				}
-				guiObjects.removeAll(toremove);
 			}
+			guiObjects.removeAll(toremove);
 
 			synchronized(winnerLock) {
 				if (guiObjects.size() < 20  && winner != null) {
@@ -203,15 +197,15 @@ public class ScoreBoard implements GameListener {
 		running = true;
 
 
-		graphicsThread = new Thread() {
+		graphicsThread = new Thread("UIGraphicsThread") {
 			public void run() {
-				tickLoop();
+				renderLoop();
 			}
 		};
 
-		tickThread = new Thread() {
+		tickThread = new Thread("UIWorkerThread") {
 			public void run() {
-				renderLoop();
+				tickLoop();
 			}
 		};
 		fullScreen = controller.setFullScreen(true);
@@ -278,15 +272,15 @@ public class ScoreBoard implements GameListener {
 
 		long now = (new Date()).getTime();
 
-		synchronized(guiObjects) { 
-			isAnimating = false;
-			synchronized(hotZones) { // otherwise sometimes a click will happen when hotZones is empty
-				hotZones.clear();
-				for (GUIObject p : guiObjects) {
-					isAnimating |= p.paint(graphics, now, frame.getContentPane().getWidth(), frame.getContentPane().getHeight(), hotZones);
-				}
+		 
+		isAnimating = false;
+		synchronized(hotZones) { // otherwise sometimes a click will happen when hotZones is empty
+			hotZones.clear();
+			for (GUIObject p : guiObjects) {
+				isAnimating |= p.paint(graphics, now, frame.getContentPane().getWidth(), frame.getContentPane().getHeight(), hotZones);
 			}
 		}
+		
 		graphics.dispose();
 		bf.show();
 	}
@@ -314,30 +308,28 @@ public class ScoreBoard implements GameListener {
 
 	public void playerRemoved(GameEvent e) {
 		PlayerPainter toRemove = null;
-		synchronized(guiObjects) {
-			for (GUIObject o : guiObjects) {
-				if (o instanceof PlayerPainter && ((PlayerPainter)o).player.equals(e.getPlayer())) {
-					toRemove = (PlayerPainter)o;
-				}
+		for (GUIObject o : guiObjects) {
+			if (o instanceof PlayerPainter && ((PlayerPainter)o).player.equals(e.getPlayer())) {
+				toRemove = (PlayerPainter)o;
 			}
 		}
+		
 		if (toRemove != null) {
 			guiObjects.remove(toRemove);
 		}
-		synchronized(guiObjects) {
-			for (GUIObject o : guiObjects) {
-				o.invalidate();
-			}
+		for (GUIObject o : guiObjects) {
+			o.invalidate();
 		}
+		
 	}
 
 	public void playerAdded(GameEvent e) {
 		guiObjects.add(factory.getPainter(e.getPlayer(), game));
-		synchronized(guiObjects) {
-			for (GUIObject o : guiObjects) {
-				o.invalidate();
-			}
+		
+		for (GUIObject o : guiObjects) {
+			o.invalidate();
 		}
+		
 	}
 
 }

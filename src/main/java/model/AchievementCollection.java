@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class AchievementCollection extends ArrayList<Achievement> {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public AchievementCollection(Collection<Achievement> achievements) {
 		super(achievements);
 	}

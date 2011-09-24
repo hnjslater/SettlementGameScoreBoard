@@ -143,30 +143,51 @@ public class Player implements Comparable<Player> {
 
 
     private void raisePlayerVPChangedEvent() {
-            synchronized(playerListeners) {
-                for (PlayerListener p: playerListeners) {
-                    p.playerVPChanged(new PlayerEvent(this));
-                }
-            }
+    	final PlayerEvent pe = new PlayerEvent(this);
+
+    	Thread t = new Thread(new Runnable() {
+    		@Override    		
+    		public void run() {
+    			synchronized(playerListeners) {
+    				for (PlayerListener p: playerListeners) {
+    					p.playerVPChanged(pe);
+    				}
+    			}
+    		}
+    	});
+    	t.run();
     }
     private void raisePlayerRenamedEvent() {
-            synchronized(playerListeners) {
-                for (PlayerListener p: playerListeners) {
-                    p.playerRenamed(new PlayerEvent(this));
-                }
-            }
+       final PlayerEvent pe = new PlayerEvent(this);
+       Thread t = new Thread(new Runnable() {
+
+    	   @Override    		
+    	   public void run() {
+    		   synchronized(playerListeners) {
+    			   for (PlayerListener p: playerListeners) {
+    				   p.playerRenamed(pe);
+    			   }
+    		   }
+    	   }
+       });
+       t.run();
     }
     void raisePlayerRankChangedEvent() {
-            synchronized(playerListeners) {
-                for (PlayerListener p: playerListeners) {
-                    p.playerRankChanged(new PlayerEvent(this));
-                }
-            }
+    	final PlayerEvent pe = new PlayerEvent(this);
+    	Thread t = new Thread(new Runnable() {
+    		public void run() {
+    			synchronized(playerListeners) {
+    				for (PlayerListener p: playerListeners) {
+    					p.playerRankChanged(pe);
+    				}
+    			}
+    		}
+    	});
+        t.run();
     }
-    
+
     public String toString() {
-	return "Player " + "(" + color.toString() + ")";
-    
+    	return "Player " + "(" + color.toString() + ")";
     }
 }
 
