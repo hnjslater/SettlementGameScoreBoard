@@ -72,7 +72,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 			graphics.setFont(paintHelper.font);
 		}
 		int lineHeight = getLineHeight();
-		Color bgColor = (game.getWinner() != null && game.getWinner().getPlayerColor().equals(PlayerColor.Black)) ? Color.white : Color.black;
+		Color bgColor = (game.getWinner() != null && game.getWinner().getPlayerColor().getColor().equals(Color.black)) ? Color.white : Color.black;
 
 		if (startY == -1) {
 			startY =(lineHeight * game.getLeaderBoard().lastIndexOf(player)); 
@@ -106,12 +106,12 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 				if (bgColor.equals(helper.getGraphicsColor(player.getPlayerColor()))) {                        
 					graphics.setColor(Color.WHITE);
 					graphics.drawOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
-					if (!player.getAchievements().contains(Achievement.LongestRoad)) {
+					if (!player.getAchievements().contains(game.getAchievements().LongestRoad())) {
 						drawOutlineText(graphics.getFont(), "R", (Graphics2D)graphics, (int)(buttonStart + (buttonWidth - unit - paintHelper.widthOfR)/2), cursor+paintHelper.cursorDrop );
 					}                        
 				}
 				else {
-					if (!player.getAchievements().contains(Achievement.LongestRoad)) {
+					if (!player.getAchievements().contains(game.getAchievements().LongestRoad())) {
 						graphics.fillOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());                        
 						graphics.setColor(Color.BLACK);
 						graphics.drawString( "R", (int)(buttonStart + (buttonWidth - unit - paintHelper.widthOfR)/2), cursor+paintHelper.cursorDrop );
@@ -124,7 +124,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 						((Graphics2D)graphics).setStroke(normal);                        
 					}                	
 				}
-				if (player.getAchievements().contains(Achievement.LongestRoad)) {
+				if (player.getAchievements().contains(game.getAchievements().LongestRoad())) {
 					hotZones.add(new HotZone(null,HotZone.ops.LR,roadButton));
 				}
 				else {
@@ -136,13 +136,13 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 				if (bgColor.equals(helper.getGraphicsColor(player.getPlayerColor()))) {                        
 					graphics.setColor(Color.WHITE);
 					graphics.drawOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
-					if (!player.getAchievements().contains(Achievement.LargestArmy)) {
+					if (!player.getAchievements().contains(game.getAchievements().LargestArmy())) {
 						drawOutlineText(graphics.getFont(), "A", (Graphics2D)graphics, (int)(buttonStart + buttonWidth + (buttonWidth - unit - paintHelper.widthOfA)/2), cursor+paintHelper.cursorDrop );
 					}                        
 				}
 				else {
 					graphics.setColor(helper.getGraphicsColor(player.getPlayerColor()));
-					if (!player.getAchievements().contains(Achievement.LargestArmy)) {
+					if (!player.getAchievements().contains(game.getAchievements().LargestArmy())) {
 						graphics.fillOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
 						graphics.setColor(Color.BLACK);
 						graphics.drawString( "A", (int)(buttonStart + buttonWidth + (buttonWidth - unit - paintHelper.widthOfA)/2), cursor+paintHelper.cursorDrop );
@@ -158,7 +158,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 				}
 
 
-				if (player.getAchievements().contains(Achievement.LargestArmy)) {
+				if (player.getAchievements().contains(game.getAchievements().LargestArmy())) {
 					hotZones.add(new HotZone(null,HotZone.ops.LA,armyButton));
 				}
 				else {
@@ -295,12 +295,8 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 			displayName += "|";
 
 		// Achievements
-		if (player.getAchievements().contains(Achievement.LongestRoad))
-			displayName += " (LR)";
-		if (player.getAchievements().contains(Achievement.LargestArmy))
-			displayName += " (LA)";
-		if (player.getAchievements().contains(Achievement.HarbourMaster))
-			displayName += " (HM)";
+		for (Achievement a : player.getAchievements())
+			displayName += "(" + a.getShortName() + ")";		
 
 		String playerVP =  new Integer( player.getVP()).toString();
 		synchronized(playerNameDirtyLock) {
@@ -323,7 +319,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 			graphics.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING,
 					java.awt.RenderingHints.VALUE_RENDER_QUALITY);
 
-			Color bgcolor = (game.getWinner() != null && game.getWinner().getPlayerColor().equals(PlayerColor.Black)) ? Color.white : Color.black;
+			Color bgcolor = (game.getWinner() != null && game.getWinner().getPlayerColor().getColor().equals(Color.black)) ? Color.white : Color.black;
 			if (!helper.getGraphicsColor(player.getPlayerColor()).equals(bgcolor)) {
 				graphics.setColor( helper.getGraphicsColor(player.getPlayerColor()) );
 				graphics.setFont(bigFont);

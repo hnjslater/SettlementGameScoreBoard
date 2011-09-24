@@ -2,10 +2,13 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -18,8 +21,14 @@ public class Game implements PlayerListener, GameConstraints {
     private AtomicInteger sharedCount;
     private int maxVP = 10;
     private PlayerFactory playerFactory;
+    private final Set<PlayerColor> colors;
+    private final AchievementCollection achievements;
 
-    public Game() {
+    public Game(Collection<PlayerColor> colors, Collection<Achievement> achievements) {
+    	this.colors = Collections.unmodifiableSet(new HashSet<PlayerColor>(colors));
+    	this.achievements = new AchievementCollection(achievements);
+    	
+    	
         this.playersByColor = new HashMap<PlayerColor,Player>();
         this.playersByAchievement = new HashMap<Achievement,Player>();
         this.gameListeners = Collections.synchronizedList(new ArrayList<GameListener>());
@@ -65,6 +74,20 @@ public class Game implements PlayerListener, GameConstraints {
     }
     public int getNumberOfPlayers() {
         return playersByColor.size();
+    }
+    public Set<PlayerColor> getColors() {
+    	return this.colors;
+    }
+    public AchievementCollection getAchievements() {
+    	return this.achievements;
+    }
+    public PlayerColor getPlayerColor(String color) {
+    	for (PlayerColor pc : getColors()) {
+    		if (pc.getName().equalsIgnoreCase(color)) {
+    			return pc;
+    		}
+    	}
+		return null;
     }
 
     public void gainAchievement(Player player, Achievement achievement) throws RulesBrokenException {

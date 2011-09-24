@@ -102,7 +102,7 @@ public class webservice  {
 			// /players/COLOR
 			else if (t.getRequestURI().getPath().matches("^/players/[^/]*/{0,1}$")){
 
-				PlayerColor playercolor = PlayerColor.valueOf(t.getRequestURI().getPath().split("/")[2]);
+				PlayerColor playercolor = game.getPlayerColor(t.getRequestURI().getPath().split("/")[2]);
 				Player player = game.getPlayer(playercolor);
 
 				if (method.equals("post") || method.equals("put")) {
@@ -121,7 +121,7 @@ public class webservice  {
 			// /players/COLOR/achievements
 			else if (t.getRequestURI().getPath().matches("^/players/[^/]*/achievements/{0,1}$")) {
 
-				PlayerColor playercolor = PlayerColor.valueOf(t.getRequestURI().getPath().split("/")[2]);
+				PlayerColor playercolor = game.getPlayerColor(t.getRequestURI().getPath().split("/")[2]);
 				Player player = game.getPlayer(playercolor);
 
 				generatePlayerAchievementsXML(hd, player);
@@ -132,8 +132,8 @@ public class webservice  {
 			else if (t.getRequestURI().getPath().matches("^/players/[^/]*/achievements/[^/]+{0,1}$")) {
 
 				String[] path = t.getRequestURI().getPath().split("/");
-				PlayerColor playercolor = PlayerColor.valueOf(path[2]);
-				Achievement achievement = Achievement.valueOf(path[4]);
+				PlayerColor playercolor = game.getPlayerColor(path[2]);
+				Achievement achievement = Achievement.valueOf(game.getAchievements(), path[4]);
 
 				if (method.equals("put") || method.equals("post"))
 					game.getPlayer(playercolor).add(achievement);
@@ -181,7 +181,7 @@ public class webservice  {
 
 			for (int i = 0; i < achievements.getLength(); i++) {
 				Node achievement = achievements.item(i);
-				incoming_achievements.add(Achievement.valueOf(achievement.getAttributes().getNamedItem("name").getNodeValue()));
+				incoming_achievements.add(Achievement.valueOf(game.getAchievements(), achievement.getAttributes().getNamedItem("name").getNodeValue()));
 
 			}
 

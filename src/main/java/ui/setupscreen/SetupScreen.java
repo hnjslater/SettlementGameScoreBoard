@@ -6,9 +6,11 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -101,9 +103,9 @@ public class SetupScreen {
 	JPanel players = new JPanel(new GridBagLayout());
 	players.setBorder(BorderFactory.createTitledBorder("Players"));
 
-	PlayerColor[] playerColors = PlayerColor.values();
+	List<PlayerColor> playerColors = new ArrayList<PlayerColor>(game.getColors());
 
-	Arrays.sort(playerColors,0, playerColors.length, new Comparator<PlayerColor>() {
+	Collections.sort(playerColors, new Comparator<PlayerColor>() {
 	    @Override
 	    public int compare(PlayerColor o1, PlayerColor o2) {
 		// TODO Auto-generated method stub
@@ -112,7 +114,6 @@ public class SetupScreen {
 	});
 
 	for (PlayerColor pc : playerColors) {
-	    if (!pc.equals(PlayerColor.None)) {
 		final JCheckBox checkbox = new JCheckBox(pc.toString());
 		final JTextField textfield = new JTextField(pc.toString(), 30);
 
@@ -147,7 +148,7 @@ public class SetupScreen {
 
 		playerPlaying.put(pc, checkbox);
 		playerNames.put(pc, textfield);
-	    }
+	    
 	}
 	{
 	    GridBagConstraints gbc = new GridBagConstraints();
@@ -249,8 +250,7 @@ public class SetupScreen {
     }
 
     public void done() {
-	for (PlayerColor pc : PlayerColor.values()) {
-	    if (!pc.equals(PlayerColor.None)) {
+	for (PlayerColor pc : game.getColors()) {
 		// is the player in the game right now?
 		boolean playerCurrent = (game.getPlayer(pc) != null);
 
@@ -273,7 +273,6 @@ public class SetupScreen {
 		// now that's sorted, best set their name.
 		if (playerShould) {
 		    game.getPlayer(pc).setName(playerNames.get(pc).getText());
-		}
 	    }
 	}
 	try {

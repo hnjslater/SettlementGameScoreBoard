@@ -45,18 +45,18 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
                     }
                     else if (hz.operation == HotZone.ops.LA) {
                         if (hz.player != null) {
-                            hz.player.add(Achievement.LargestArmy);
+                            hz.player.add(game.getAchievements().LargestArmy());
                         }
                         else {
-                            game.getAchievement(Achievement.LargestArmy).remove(Achievement.LargestArmy);
+                            game.getAchievement(game.getAchievements().LargestArmy()).remove(game.getAchievements().LargestArmy());
                         }
                     }
                     else if (hz.operation == HotZone.ops.LR) {
                         if (hz.player != null) {
-                            hz.player.add(Achievement.LongestRoad);
+                            hz.player.add(game.getAchievements().LongestRoad());
                         }
                         else {
-                            game.getAchievement(Achievement.LongestRoad).remove(Achievement.LongestRoad);
+                            game.getAchievement(game.getAchievements().LongestRoad()).remove(game.getAchievements().LongestRoad());
                         }
                     }
                     return;

@@ -41,7 +41,7 @@ class ScoreBoardKeyListener extends KeyAdapter {
                 	    p.remove(achievementToSet);
                     }
                     else {
-                	Player p = game.getPlayer(helper.getPlayerColor(Character.toLowerCase(e.getKeyChar())));
+                	Player p = game.getPlayer(helper.getPlayerColor(game.getColors(),Character.toLowerCase(e.getKeyChar())));
                 	if (p != null)
                 	    p.add(achievementToSet);
                     }
@@ -53,7 +53,7 @@ class ScoreBoardKeyListener extends KeyAdapter {
                 board.setState(ScoreBoard.ScoreBoardState.DEFAULT);
             break;
             case WaitingForColorToEdit:
-                playerEditing = helper.getPlayerColor(e.getKeyChar());
+                playerEditing = helper.getPlayerColor(game.getColors(),e.getKeyChar());
                 if (playerEditing != null) {
                     state = State.EditingPlayer;
                     board.setStateEditing(playerEditing);
@@ -76,7 +76,7 @@ class ScoreBoardKeyListener extends KeyAdapter {
             case WaitingForColorToAdd:
                 {
                 	try {
-                    PlayerColor pc = helper.getPlayerColor(e.getKeyChar());
+                    PlayerColor pc = helper.getPlayerColor(game.getColors(),e.getKeyChar());
                     if (pc != null)
                         game.addPlayer(pc);
                     state = State.Entry;
@@ -89,12 +89,12 @@ class ScoreBoardKeyListener extends KeyAdapter {
             break;
             case WaitingForColorToDelete:
                 {
-                    PlayerColor pc = helper.getPlayerColor(e.getKeyChar());
+                    PlayerColor pc = helper.getPlayerColor(game.getColors(),e.getKeyChar());
                     if (pc != null) {
-                	Player p = game.getPlayer(pc);
-                	if (p != null) {
-                	    game.removePlayer(p);
-                	}
+                    	Player p = game.getPlayer(pc);
+                    	if (p != null) {
+                    		game.removePlayer(p);
+                    	}
                     }
                         
                     state = State.Entry;
@@ -103,17 +103,7 @@ class ScoreBoardKeyListener extends KeyAdapter {
             break;
             case Entry:
                 char lowerChar = Character.toLowerCase(e.getKeyChar());
-                if (lowerChar == 'a') {
-                    state = State.WaitingForAchievement;
-                    achievementToSet = Achievement.LargestArmy;
-                    board.setStateAchievement(Achievement.LargestArmy);
-                }
-                else if (lowerChar == 'l') {
-                    state = State.WaitingForAchievement;
-                    achievementToSet = Achievement.LongestRoad;
-                    board.setStateAchievement(Achievement.LongestRoad);
-                }
-                else if (lowerChar == 'e') {
+                if (lowerChar == 'e') {
                     state = State.WaitingForColorToEdit;
                     board.setState(ScoreBoard.ScoreBoardState.SELECT_PLAYER_TO_EDIT);
                 }
@@ -125,12 +115,6 @@ class ScoreBoardKeyListener extends KeyAdapter {
                     state = State.WaitingForColorToDelete;
                     board.setState(ScoreBoard.ScoreBoardState.SELECT_PLAYER_TO_DELETE);
                 }
-                else if (e.getKeyChar() == 'h') {
-                    state = State.WaitingForAchievement;
-                    achievementToSet = Achievement.HarbourMaster;
-                    board.setStateAchievement(Achievement.HarbourMaster);
-                    //board.setShowHelp(!board.getShowHelp());
-                }
                 else if (e.getKeyChar() == 'c') {
                     board.setShowColorHelp(!board.getShowColorHelp());
                 }
@@ -141,16 +125,24 @@ class ScoreBoardKeyListener extends KeyAdapter {
                     board.stop();
                 }
                 else {
-                    try {
-                        // Lower case = +1 VP, Upper Case = -1 VP
-                        int updateAmount = Character.isLowerCase(e.getKeyChar()) ? 1 : -1;
+                	try {
+                		Achievement a = game.getAchievements().findByChar(lowerChar);
+                		if (a != null) {
+                            state = State.WaitingForAchievement;
+                            achievementToSet = a;
+                            board.setStateAchievement(a);
+                		}
+                		else {
+                			// Lower case = +1 VP, Upper Case = -1 VP
+                			int updateAmount = Character.isLowerCase(e.getKeyChar()) ? 1 : -1;
 
-                        // This will throw if e.getKeyChar isn't a character which maps to a color
-                        Player p = game.getPlayer(helper.getPlayerColor(e.getKeyChar()));
+                			// This will throw if e.getKeyChar isn't a character which maps to a color
+                			Player p = game.getPlayer(helper.getPlayerColor(game.getColors(),e.getKeyChar()));
 
-                        if (game.getWinner() == null || game.getWinner() == p) {
-                            p.setVP(p.getSettlementVP() + updateAmount);
-                        }
+                			if (game.getWinner() == null || game.getWinner() == p) {
+                				p.setVP(p.getSettlementVP() + updateAmount);
+                			}
+                		}
                     }
                     catch (Exception ex) {
                     }

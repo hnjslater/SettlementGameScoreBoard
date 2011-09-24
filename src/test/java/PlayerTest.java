@@ -1,6 +1,8 @@
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
+import java.awt.Color;
 import java.util.concurrent.atomic.AtomicInteger;
 import model.*;
 import static org.easymock.EasyMock.*;
@@ -44,7 +46,8 @@ public class PlayerTest
      */
     public void testPlayerNaming() throws RulesBrokenException
     {
-        Player p = new Player(PlayerColor.Blue, changeNo, mockConstraints);
+    	PlayerColor blue = new PlayerColor("Blue", Color.blue, 'b');
+        Player p = new Player(blue, changeNo, mockConstraints);
 
         mockListener.playerRenamed(new PlayerEvent(p));
         mockListener.playerRenamed(new PlayerEvent(p));
@@ -53,7 +56,7 @@ public class PlayerTest
         p.addPlayerListener(mockListener);
 
         // Check the default name works
-        assertEquals (p.getName(), PlayerColor.Blue.toString());
+        assertEquals (p.getName(), blue.toString());
 
         // Can we change it (and does the right event fire?)
         p.setName("BLAH");
@@ -63,7 +66,7 @@ public class PlayerTest
         // Back to where we started (along with another event)
         p.resetName();
 
-        assertEquals (p.getName(), PlayerColor.Blue.toString());
+        assertEquals (p.getName(), blue.toString());
         
         // Check the remove works (the next setName shouldn't send an event)
         p.removePlayerListener(mockListener);
@@ -74,7 +77,9 @@ public class PlayerTest
     }
     
     public void testPlayerVP() throws RulesBrokenException {
-        Player p = new Player(PlayerColor.Blue, changeNo, mockConstraints);
+    	PlayerColor blue = new PlayerColor("Blue", Color.blue, 'b');
+        Player p = new Player(blue, changeNo, mockConstraints);
+        Achievement largestArmy = new Achievement("Largest Army", 2, "LH", 'l');
         
         mockListener.playerVPChanged(new PlayerEvent(p));
         expectLastCall().times(3);
@@ -84,23 +89,26 @@ public class PlayerTest
         p.addPlayerListener(mockListener);
         
         p.setVP(10);
-        p.add(Achievement.LargestArmy);
-        p.remove(Achievement.LargestArmy);
+        p.add(largestArmy);
+        p.remove(largestArmy);
         
         // check the remove works
         p.removePlayerListener(mockListener);
         
         // none of these should pass events to mockListener:
         p.setVP(12);
-        p.add(Achievement.LargestArmy);
-        p.remove(Achievement.LargestArmy);
+        p.add(largestArmy);
+        p.remove(largestArmy);
         
         verify(mockListener);
     }
     
     public void testPlayerComparing() throws RulesBrokenException {
-        Player pB = new Player(PlayerColor.Blue, changeNo, mockConstraints);
-        Player pG = new Player(PlayerColor.Green, changeNo, mockConstraints);
+    	PlayerColor blue = new PlayerColor("Blue", Color.blue, 'b');
+    	PlayerColor green = new PlayerColor("Green", Color.green, 'g');
+    	
+        Player pB = new Player(blue, changeNo, mockConstraints);
+        Player pG = new Player(green, changeNo, mockConstraints);
         
         // sanity check
         assertTrue (pB.compareTo(pB) == 0);
@@ -132,8 +140,10 @@ public class PlayerTest
     }
     
     public void testPlayerEquals() {
-        Player pB = new Player(PlayerColor.Blue, changeNo, mockConstraints);
-        Player pG = new Player(PlayerColor.Green, changeNo, mockConstraints);
+    	PlayerColor blue = new PlayerColor("Blue", Color.blue, 'b');
+    	PlayerColor green = new PlayerColor("Green", Color.green, 'g');
+        Player pB = new Player(blue, changeNo, mockConstraints);
+        Player pG = new Player(green, changeNo, mockConstraints);
 
         assertEquals(pB,pB);
         assertTrue(Player.equals(pB, pB));
