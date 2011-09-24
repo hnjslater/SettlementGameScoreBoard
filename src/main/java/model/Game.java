@@ -120,29 +120,45 @@ public class Game implements PlayerListener, GameConstraints {
     }
     public void playerRankChanged(PlayerEvent pe) {
     }
+    private void raiseWinnerChangedEvent(final GameEvent wce) {
+       Thread t = new Thread(new Runnable() {
+               public void run() {
+                       synchronized(gameListeners) {
+                               for (GameListener g : gameListeners) {
+                                       g.winnerChanged(wce);
+                               }
+                       }
+               }
+       }
+       );
+       t.run();
+    }
+    private void raisePlayerAddedEvent(final GameEvent wce) {
+       Thread t = new Thread(new Runnable() {
+               public void run() {
+                       synchronized(gameListeners) {
+                               for (GameListener g : gameListeners) {
+                                       g.playerAdded(wce);
+                               }
+                       }
+               }
+       });
+       t.run();
+    }
+    private void raisePlayerRemovedEvent(final GameEvent wce) {
+       Thread t = new Thread(new Runnable() {
+               public void run() {
+                       synchronized(gameListeners) {
+                               for (GameListener g : gameListeners) {
+                                       g.playerRemoved(wce);
+                               }
+                       }
+               }
+       });
+       t.run();
+     }
 
 
-    private void raiseWinnerChangedEvent(GameEvent wce) {
-        synchronized(gameListeners) {
-            for (GameListener g : gameListeners) {
-                g.winnerChanged(wce);
-            }
-        }
-    }
-    private void raisePlayerAddedEvent(GameEvent wce) {
-        synchronized(gameListeners) {
-            for (GameListener g : gameListeners) {
-                g.playerAdded(wce);
-            }
-        }
-    }
-    private void raisePlayerRemovedEvent(GameEvent wce) {
-        synchronized(gameListeners) {
-            for (GameListener g : gameListeners) {
-                g.playerRemoved(wce);
-            }
-        }
-    }
     public void updateVP(Player p, int vp_delta) {
         if (getWinner() != null) {
             if (!getWinner().equals(p))
