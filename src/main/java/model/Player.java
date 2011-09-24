@@ -180,6 +180,7 @@ public class Player implements Comparable<Player> {
                        }
                }
        });
+       t.run();
     }
     
     public String toString() {
