@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,11 +20,9 @@ public class Game implements PlayerListener, GameConstraints {
     private AtomicInteger sharedCount;
     private int maxVP = 10;
     private PlayerFactory playerFactory;
-    private final Set<PlayerColor> colors;
     private final AchievementCollection achievements;
 
-    public Game(Collection<PlayerColor> colors, Collection<Achievement> achievements) {
-    	this.colors = Collections.unmodifiableSet(new HashSet<PlayerColor>(colors));
+    public Game(Collection<Achievement> achievements) {
     	this.achievements = new AchievementCollection(achievements);
     	
     	
@@ -75,14 +72,14 @@ public class Game implements PlayerListener, GameConstraints {
     public int getNumberOfPlayers() {
         return playersByColor.size();
     }
-    public Set<PlayerColor> getColors() {
-    	return this.colors;
+    public Set<PlayerColor> getPlayerColors() {
+    	return this.playersByColor.keySet();
     }
     public AchievementCollection getAchievements() {
     	return this.achievements;
     }
     public PlayerColor getPlayerColor(String color) {
-    	for (PlayerColor pc : getColors()) {
+    	for (PlayerColor pc : getPlayerColors()) {
     		if (pc.getName().equalsIgnoreCase(color)) {
     			return pc;
     		}

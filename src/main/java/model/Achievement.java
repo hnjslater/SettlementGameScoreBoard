@@ -2,7 +2,7 @@ package model;
 
 import java.util.Collection;
 
-public class Achievement {
+public class Achievement implements Comparable<Achievement> {
 	private String name;
 	private int victory_points;
 	private String short_name;
@@ -37,4 +37,10 @@ public class Achievement {
 		}
 		return null;
 	}
+
+	@Override
+	public int compareTo(Achievement arg0) {
+		return this.getName().compareTo(arg0.getName());
+	}
+	
 }

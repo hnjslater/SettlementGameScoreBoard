@@ -1,0 +1,16 @@
+<game>
+    <colors>
+        <color name="blue"		hex_value="#0000FF" character="b" />
+        <color name="green"		hex_value="#00FF00" character="g" />
+        <color name="red"		hex_value="#FF0000" character="r" />
+        <color name="orange"	hex_value="#FF7F00" character="o" />
+        <color name="white"		hex_value="#FFFFFF" character="w" />
+        <color name="brown"		hex_value="#872A2A" character="n" />
+        <color name="black"		hex_value="#000000" character="k" />
+    </colors>
+    <achievements>
+        <achievement name="Longest Road" 	short_name="LR"		character="l "/>
+        <achievement name="Largest Army" 	short_name="LA"		character="a" />
+        <achievement name="Harbour Master" 	short_name="HM"		character="h" />
+    </achievements>
+</game>

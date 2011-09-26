@@ -19,7 +19,6 @@ import java.util.List;
 import model.Achievement;
 import model.Game;
 import model.Player;
-import model.PlayerColor;
 import model.PlayerEvent;
 import model.PlayerListener;
 
@@ -101,69 +100,47 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 			if (game.getWinner() == null) {
 				// Longest Road button
 
-				Ellipse2D roadButton = new Ellipse2D.Double(buttonStart, cursor+unit*4, unit*15, unit*15);
+				float currentButtonX = buttonStart + buttonWidth;
 
-				if (bgColor.equals(helper.getGraphicsColor(player.getPlayerColor()))) {                        
-					graphics.setColor(Color.WHITE);
-					graphics.drawOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
-					if (!player.getAchievements().contains(game.getAchievements().LongestRoad())) {
-						drawOutlineText(graphics.getFont(), "R", (Graphics2D)graphics, (int)(buttonStart + (buttonWidth - unit - paintHelper.widthOfR)/2), cursor+paintHelper.cursorDrop );
-					}                        
-				}
-				else {
-					if (!player.getAchievements().contains(game.getAchievements().LongestRoad())) {
-						graphics.fillOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());                        
-						graphics.setColor(Color.BLACK);
-						graphics.drawString( "R", (int)(buttonStart + (buttonWidth - unit - paintHelper.widthOfR)/2), cursor+paintHelper.cursorDrop );
+				for (Achievement a : game.getAchievements()) {
+					Ellipse2D currentButton = new Ellipse2D.Double(currentButtonX, cursor+unit*4, unit*15, unit*15);
+
+					if (bgColor.equals(helper.getGraphicsColor(player.getPlayerColor()))) {                        
+						graphics.setColor(Color.WHITE);
+						graphics.drawOval((int)currentButton.getX(), (int)currentButton.getY(), (int)currentButton.getWidth(), (int)currentButton.getHeight());
+						if (!player.getAchievements().contains(a)) {
+							drawOutlineText(graphics.getFont(), a.getCharacter(), (Graphics2D)graphics, (int)(currentButtonX + (buttonWidth - unit - paintHelper.widthOfR)/2), cursor+paintHelper.cursorDrop );
+						}                        
 					}
 					else {
-						Stroke normal = ((Graphics2D)graphics).getStroke();
-						Stroke wider = new BasicStroke(4);
-						((Graphics2D)graphics).setStroke(wider);
-						graphics.drawOval((int)roadButton.getX(), (int)roadButton.getY(), (int)roadButton.getWidth(), (int)roadButton.getHeight());
-						((Graphics2D)graphics).setStroke(normal);                        
-					}                	
-				}
-				if (player.getAchievements().contains(game.getAchievements().LongestRoad())) {
-					hotZones.add(new HotZone(null,HotZone.ops.LR,roadButton));
-				}
-				else {
-					hotZones.add(new HotZone(player,HotZone.ops.LR,roadButton));
-				}
-
-				// Largest Army button
-				Ellipse2D armyButton = new Ellipse2D.Double(buttonStart + buttonWidth, cursor+unit*4, unit*15, unit*15);
-				if (bgColor.equals(helper.getGraphicsColor(player.getPlayerColor()))) {                        
-					graphics.setColor(Color.WHITE);
-					graphics.drawOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
-					if (!player.getAchievements().contains(game.getAchievements().LargestArmy())) {
-						drawOutlineText(graphics.getFont(), "A", (Graphics2D)graphics, (int)(buttonStart + buttonWidth + (buttonWidth - unit - paintHelper.widthOfA)/2), cursor+paintHelper.cursorDrop );
-					}                        
-				}
-				else {
-					graphics.setColor(helper.getGraphicsColor(player.getPlayerColor()));
-					if (!player.getAchievements().contains(game.getAchievements().LargestArmy())) {
-						graphics.fillOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
-						graphics.setColor(Color.BLACK);
-						graphics.drawString( "A", (int)(buttonStart + buttonWidth + (buttonWidth - unit - paintHelper.widthOfA)/2), cursor+paintHelper.cursorDrop );
-
+						if (!player.getAchievements().contains(a)) {
+							graphics.fillOval((int)currentButton.getX(), (int)currentButton.getY(), (int)currentButton.getWidth(), (int)currentButton.getHeight());                        
+							graphics.setColor(Color.BLACK);
+							graphics.drawChars( new char[] { a.getCharacter() }, 0, 1, (int)(currentButtonX + (buttonWidth - unit - paintHelper.widthOfR)/2), cursor+paintHelper.cursorDrop );
+							graphics.setColor(player.getPlayerColor().getColor());
+						}
+						else {
+							Stroke normal = ((Graphics2D)graphics).getStroke();
+							Stroke wider = new BasicStroke(4);
+							((Graphics2D)graphics).setStroke(wider);
+							graphics.drawOval((int)currentButton.getX(), (int)currentButton.getY(), (int)currentButton.getWidth(), (int)currentButton.getHeight());
+							((Graphics2D)graphics).setStroke(normal);                        
+						}                	
+					}
+					if (player.getAchievements().contains(a)) {
+						hotZones.add(new HotZone(null,HotZone.ops.ACH,currentButton,a));
 					}
 					else {
-						Stroke normal = ((Graphics2D)graphics).getStroke();
-						Stroke wider = new BasicStroke(4);
-						((Graphics2D)graphics).setStroke(wider);
-						graphics.drawOval((int)armyButton.getX(), (int)armyButton.getY(), (int)armyButton.getWidth(), (int)armyButton.getHeight());
-						((Graphics2D)graphics).setStroke(normal);                	 
+						hotZones.add(new HotZone(player,HotZone.ops.ACH,currentButton,a));
 					}
+
+					currentButtonX -= buttonWidth;
 				}
+				
+				
 
 
-				if (player.getAchievements().contains(game.getAchievements().LargestArmy())) {
-					hotZones.add(new HotZone(null,HotZone.ops.LA,armyButton));
-				}
-				else {
-					hotZones.add(new HotZone(player,HotZone.ops.LA,armyButton));
-				}
+
 
 				// Plus box:
 				graphics.setColor(helper.getGraphicsColor(player.getPlayerColor()));
@@ -188,7 +165,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 					graphics.setColor(Color.WHITE);
 					graphics.drawOval((int)plusButton.getX(), (int)plusButton.getY(), (int)plusButton.getWidth(), (int)plusButton.getHeight());
 					graphics.drawPolygon(pol);
-					hotZones.add(new HotZone(player,HotZone.ops.INC,plusButton));
+					hotZones.add(new HotZone(player,HotZone.ops.INC,plusButton,null));
 
 				}
 				else {
@@ -196,7 +173,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 					graphics.setColor(Color.BLACK);
 					graphics.fillPolygon(pol);
 				}
-				hotZones.add(new HotZone(player,HotZone.ops.INC,plusButton));
+				hotZones.add(new HotZone(player,HotZone.ops.INC,plusButton, null));
 			}
 			// Minus box:
 			if ((game.getWinner() == null && player.getSettlementVP() > 2) || game.getWinner() == player) {
@@ -212,7 +189,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 					graphics.setColor(Color.BLACK);
 					graphics.fillRect((int)(box2.getX()+unit*4), (int)(box2.getY()+unit*7), (int)(unit*7), (int)(unit));
 				}
-				hotZones.add(new HotZone(player,HotZone.ops.DEC,box2));
+				hotZones.add(new HotZone(player,HotZone.ops.DEC,box2,null));
 			}
 
 		}
@@ -341,6 +318,10 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 		}
 	}
 
+	private void drawOutlineText(Font bigFont, char displayName,
+			Graphics2D graphics, int x, int y) {
+		drawOutlineText(bigFont, Character.toString(displayName), graphics, x, y);
+	}
 	private void drawOutlineText(Font bigFont, String displayName,
 			Graphics2D graphics, int x, int y) {
 

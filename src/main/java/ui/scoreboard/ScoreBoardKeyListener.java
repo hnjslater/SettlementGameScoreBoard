@@ -41,7 +41,7 @@ class ScoreBoardKeyListener extends KeyAdapter {
                 	    p.remove(achievementToSet);
                     }
                     else {
-                	Player p = game.getPlayer(helper.getPlayerColor(game.getColors(),Character.toLowerCase(e.getKeyChar())));
+                	Player p = game.getPlayer(helper.getPlayerColor(game.getPlayerColors(),Character.toLowerCase(e.getKeyChar())));
                 	if (p != null)
                 	    p.add(achievementToSet);
                     }
@@ -53,7 +53,7 @@ class ScoreBoardKeyListener extends KeyAdapter {
                 board.setState(ScoreBoard.ScoreBoardState.DEFAULT);
             break;
             case WaitingForColorToEdit:
-                playerEditing = helper.getPlayerColor(game.getColors(),e.getKeyChar());
+                playerEditing = helper.getPlayerColor(game.getPlayerColors(),e.getKeyChar());
                 if (playerEditing != null) {
                     state = State.EditingPlayer;
                     board.setStateEditing(playerEditing);
@@ -76,7 +76,7 @@ class ScoreBoardKeyListener extends KeyAdapter {
             case WaitingForColorToAdd:
                 {
                 	try {
-                    PlayerColor pc = helper.getPlayerColor(game.getColors(),e.getKeyChar());
+                    PlayerColor pc = helper.getPlayerColor(game.getPlayerColors(),e.getKeyChar());
                     if (pc != null)
                         game.addPlayer(pc);
                     state = State.Entry;
@@ -89,7 +89,7 @@ class ScoreBoardKeyListener extends KeyAdapter {
             break;
             case WaitingForColorToDelete:
                 {
-                    PlayerColor pc = helper.getPlayerColor(game.getColors(),e.getKeyChar());
+                    PlayerColor pc = helper.getPlayerColor(game.getPlayerColors(),e.getKeyChar());
                     if (pc != null) {
                     	Player p = game.getPlayer(pc);
                     	if (p != null) {
@@ -115,9 +115,6 @@ class ScoreBoardKeyListener extends KeyAdapter {
                     state = State.WaitingForColorToDelete;
                     board.setState(ScoreBoard.ScoreBoardState.SELECT_PLAYER_TO_DELETE);
                 }
-                else if (e.getKeyChar() == 'c') {
-                    board.setShowColorHelp(!board.getShowColorHelp());
-                }
                 else if (e.getKeyChar() == 'f') {
                 //    board.toggleFullScreen();
                 }
@@ -137,7 +134,7 @@ class ScoreBoardKeyListener extends KeyAdapter {
                 			int updateAmount = Character.isLowerCase(e.getKeyChar()) ? 1 : -1;
 
                 			// This will throw if e.getKeyChar isn't a character which maps to a color
-                			Player p = game.getPlayer(helper.getPlayerColor(game.getColors(),e.getKeyChar()));
+                			Player p = game.getPlayer(helper.getPlayerColor(game.getPlayerColors(),e.getKeyChar()));
 
                 			if (game.getWinner() == null || game.getWinner() == p) {
                 				p.setVP(p.getSettlementVP() + updateAmount);

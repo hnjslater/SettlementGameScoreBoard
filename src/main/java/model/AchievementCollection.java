@@ -18,11 +18,4 @@ public class AchievementCollection extends ArrayList<Achievement> {
 				return a;
 		return null;
  	}
-	
-	public Achievement LongestRoad() {
-		return findByChar('l');
-	}
-	public Achievement LargestArmy() {
-		return findByChar('a');
-	}
 }

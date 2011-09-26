@@ -1,12 +1,14 @@
 package ui;
 
-import model.Game;
-import ui.scoreboard.ScoreBoard;
-import ui.setupscreen.SetupScreen;
-
-import javax.swing.JFrame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+
+import javax.swing.JFrame;
+
+import model.Game;
+import model.GameOptions;
+import ui.scoreboard.ScoreBoard;
+import ui.setupscreen.SetupScreen;
 
 public class Controller {
     JFrame frame;
@@ -15,11 +17,11 @@ public class Controller {
     SetupScreen setupScreen;
     boolean fullscreen;
     final Object frameLock;
-    public Controller(Game g) {
+    public Controller(Game g, GameOptions options) {
         this.frameLock = new Object();
         this.game = g;
         this.scoreBoard = new ScoreBoard(this, g);
-        this.setupScreen = new SetupScreen(this, g);
+        this.setupScreen = new SetupScreen(this, g, options);
     }
 
     public void run() throws InterruptedException {

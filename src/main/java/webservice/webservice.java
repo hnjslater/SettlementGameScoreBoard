@@ -134,6 +134,8 @@ public class webservice  {
 				String[] path = t.getRequestURI().getPath().split("/");
 				PlayerColor playercolor = game.getPlayerColor(path[2]);
 				Achievement achievement = Achievement.valueOf(game.getAchievements(), path[4]);
+				if (achievement == null)
+					throw new RuntimeException("Achievement '" + path[4] + "' not recognized");
 
 				if (method.equals("put") || method.equals("post"))
 					game.getPlayer(playercolor).add(achievement);
