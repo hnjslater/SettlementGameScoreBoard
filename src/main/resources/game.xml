@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <game>
     <colors>
         <color name="blue"		hex_value="#0000FF" character="b" />
@@ -9,8 +10,8 @@
         <color name="black"		hex_value="#000000" character="k" />
     </colors>
     <achievements>
-        <achievement name="Longest Road" 	short_name="LR"		character="l "/>
-        <achievement name="Largest Army" 	short_name="LA"		character="a" />
-        <achievement name="Harbour Master" 	short_name="HM"		character="h" />
+        <achievement name="Longest Road" 	short_name="LR"		character="l" victory_points="2" />
+        <achievement name="Largest Army" 	short_name="LA"		character="a" victory_points="2" />
+        <achievement name="Harbour Master" 	short_name="HM"		character="h" victory_points="2" />
     </achievements>
 </game>
