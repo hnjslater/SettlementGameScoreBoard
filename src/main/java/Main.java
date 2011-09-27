@@ -1,8 +1,3 @@
-import java.awt.Color;
-import java.util.HashSet;
-import java.util.Set;
-
-import model.Achievement;
 import model.Game;
 import model.GameOptions;
 import model.GameOptionsLoader;

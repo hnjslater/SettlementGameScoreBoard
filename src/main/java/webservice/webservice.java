@@ -55,9 +55,7 @@ public class webservice  {
 			TransformerHandler hd = createTransformHandler(response);
 			AttributesImpl atts = new AttributesImpl();
 			hd.startElement("","","game",atts);
-			atts.addAttribute("","","winning_victory_points","CDATA",Integer.toString(game.getWinningVP()));
-			hd.startElement("","","rules", atts);
-			hd.endElement("", "", "rules");
+			generateRulesXML(hd);
 			atts.clear();
 			generatePlayersXML(hd);
 			hd.endElement("","","game");
@@ -71,6 +69,21 @@ public class webservice  {
 
 			sendErrorMessage(500, t, e.getMessage());    
 		}
+	}
+
+	private void generateRulesXML(TransformerHandler hd)
+			throws SAXException {
+		AttributesImpl atts = new AttributesImpl();
+		atts.addAttribute("","","winning_victory_points","CDATA",Integer.toString(game.getWinningVP()));
+		hd.startElement("","","rules", atts);
+		for (Achievement a: this.game.getAchievements()) {
+			atts.clear();
+			atts.addAttribute("", "", "name", "CDATA", a.getName());
+			atts.addAttribute("", "", "victory_points", "CDATA", Integer.toString(a.getVictoryPoints()));
+			hd.startElement("", "", "achievement", atts);
+			hd.endElement("", "", "achievement");
+		}
+		hd.endElement("", "", "rules");
 	}
 
 	private void generatePlayersXML(TransformerHandler hd)

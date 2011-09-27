@@ -9,6 +9,9 @@ Settlement Controls
    // we will add our javascript code here                                     
  </script>
 
+ <style type="text/css">
+ 	#achievement-buttons button { display: block; }
+ </style>
 </head>
 <body>
 <script>
@@ -19,11 +22,29 @@ Settlement Controls
           datatype: "xml",
           success: function( xml ) {
               $(xml).find('player').each(function(){
-                  // alert($(this).attr("name"));
-                    $('#playercolor')
-                        .append('<option value="' + $(this).attr("color") + '">' +  $(this).attr("name") + "</option>") })
-                }
-          })
+                	$('#playercolor')
+                        .append('<option value="' + $(this).attr("color") + '">' +  $(this).attr("name") + "</option>");
+              })
+                
+                
+              $(xml).find('rules achievement').each(function(){
+                  	var achievement = $(this).attr("name");
+                	$('#achievement-buttons')
+                		.append($('<button>' + achievement + '</button>').click(function() {
+                    		
+               				var playercolor = $('#playercolor option:selected').val();
+
+                    		$.ajax({ 
+                        			type: "POST",
+                        			url: "/players/" + playercolor + "/achievements/" + achievement,
+                        	});
+
+				            return false;
+                		})
+                	)
+              })
+          }
+        })
 
         $('#minus-one').click(function() {
             var playercolor = $('#playercolor option:selected').val();
@@ -59,52 +80,23 @@ Settlement Controls
                 });
 
             return false;
-        });
+        })
 
-        $('#longest-road').click(function() {
-            var playercolor = $('#playercolor option:selected').val();
+     });
 
-                    $.ajax({ 
-                        type: "POST",
-                        url: "/players/" + playercolor + "/achievements/Longest Road",
-                        });
-
-            return false;
-        });
-
-
-        $('#largest-army').click(function() {
-            var playercolor = $('#playercolor option:selected').val();
-
-                    $.ajax({ 
-                        type: "POST",
-                        url: "/players/" + playercolor + "/achievements/Largest Army",
-                        });
-
-            return false;
-        });
-
-
-        $('#harbour-master').click(function() {
-            var playercolor = $('#playercolor option:selected').val();
-
-                    $.ajax({ 
-                        type: "POST",
-                        url: "/players/" + playercolor + "/achievements/Harbourmaster",
-                        });
-
-            return false;
-        });
-
-        });
 </script>
 <form>
-<select id="playercolor"></select><br />
-<button id="minus-one">-1</button>
-<button id="plus-one">+1</button><br />
-<button id="longest-road">Longest Road</button></br />
-<button id="largest-army">Largest Army</button></br />
-<button id="harbour-master">Harbour Master</button></br />
+<div>
+<div>
+	<select id="playercolor"></select>
+</div>
+<div>
+	<button id="minus-one">-1</button>
+	<button id="plus-one">+1</button>
+</div>
+<div id="achievement-buttons">
+</div>
+</div>
 </form>
 </body>
 </html>
