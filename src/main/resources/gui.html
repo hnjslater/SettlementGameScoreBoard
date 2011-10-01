@@ -4,19 +4,50 @@
 Settlement Controls
 </title>
 
- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>          
- <script type="text/javascript">                                         
-   // we will add our javascript code here                                     
- </script>
+ <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>     
 
  <style type="text/css">
- 	#achievement-buttons button { display: block; }
+    #playercolor { width: 100%; }
+ 	#achievement-buttons button { display: block; width: 100%; }
+ 	#settlement-buttons button {width: 50%; text-align: center;}
+ 	#scores span {display: block; }
  </style>
+ 
+<meta name="HandheldFriendly" content="true" />
+<meta name="viewport" content="width=device-width, height=device-height, user-scalable=no" />
+ 
 </head>
 <body>
 <script>
+	function updateScoresOnce() {
+		$.ajax({
+	          url: '/',
+	          datatype: "xml",
+	          success: function( xml ) {
+	          	  var newScores="";
+	              $(xml).find('player').each(function(){
+		              	var points = parseInt($(this).attr("victory_points")) + $(this).find("achievement").size() * 2;
+		              	var color = $(this).attr("color");
+		              	if (color == "white")
+	                    	newScores += '<span style="color: ' + color + '; background-color: black;">'
+	                    else  
+	                    	newScores += '<span style="color: ' + color + ';">' 
+		                newScores += points + " " + $(this).attr("name") + "</span>";
+	              })
+	              $('#scores').html(newScores);
+			  }
+		})
+	}
+
+	function updateScores() {
+		updateScoresOnce();
+		window.setTimeout('updateScores()', 1000);
+	}
+
      $(document).ready(function(){
 
+    	updateScores();
+    		
         $.ajax({
           url: '/',
           datatype: "xml",
@@ -39,12 +70,14 @@ Settlement Controls
                         			url: "/players/" + playercolor + "/achievements/" + achievement,
                         	});
 
+                    		
+
 				            return false;
                 		})
                 	)
               })
-          }
-        })
+          } // success
+        }) // ajax
 
         $('#minus-one').click(function() {
             var playercolor = $('#playercolor option:selected').val();
@@ -82,17 +115,19 @@ Settlement Controls
             return false;
         })
 
-     });
+     }); // document.ready
 
 </script>
 <form>
 <div>
+<div id="scores">
+</div>
+<hr />
 <div>
 	<select id="playercolor"></select>
 </div>
-<div>
-	<button id="minus-one">-1</button>
-	<button id="plus-one">+1</button>
+<div id="settlement-buttons">
+	<button id="minus-one">-1</button><button id="plus-one">+1</button>
 </div>
 <div id="achievement-buttons">
 </div>

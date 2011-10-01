@@ -76,7 +76,13 @@ public class Player implements Comparable<Player> {
     }
 
     private int getAchievementsVP() {
-        return achievements.size()*2;
+    	int achievementsVP = 0;
+    	synchronized(achievements) {
+    		for (Achievement a : achievements) {
+    			achievementsVP += a.getVictoryPoints();
+    		}
+    	}
+    	return achievementsVP;
     }
 
     public int compareTo(Player p) {
@@ -100,14 +106,14 @@ public class Player implements Comparable<Player> {
 
     
     public void add(Achievement a) throws RulesBrokenException {
-	this.constraints.gainAchievement(this, a);
+    	this.constraints.gainAchievement(this, a);
         achievements.add(a);
         vp_times[getVP()] = sharedCount.getAndIncrement();
         
         raisePlayerVPChangedEvent();
     }
     public void remove(Achievement a) throws RulesBrokenException {
-	this.constraints.looseAchievement(this, a);
+    	this.constraints.looseAchievement(this, a);
         achievements.remove(a);
         vp_times[getVP()] = -sharedCount.getAndIncrement();
         raisePlayerVPChangedEvent();

@@ -43,4 +43,9 @@ public class Achievement implements Comparable<Achievement> {
 		return this.getName().compareTo(arg0.getName());
 	}
 	
+	@Override
+	public String toString() {
+		return getName();
+	}
+	
 }

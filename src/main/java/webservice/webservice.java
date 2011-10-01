@@ -165,6 +165,8 @@ public class webservice  {
 			}
 			hd.endDocument();
 
+			if (response.size() == 0)
+				new PrintWriter(response).write("OK");
 			t.sendResponseHeaders(200, response.size());
 			response.writeTo(os); 
 			os.close();
