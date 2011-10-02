@@ -26,13 +26,22 @@ Settlement Controls
 	          success: function( xml ) {
 	          	  var newScores="";
 	              $(xml).find('player').each(function(){
-		              	var points = parseInt($(this).attr("victory_points")) + $(this).find("achievement").size() * 2;
+		              	var name = $(this).attr("name");
+		              	var points = parseInt($(this).attr("settlement_victory_points"));
+		              	$(this).find("achievements achievement").each(function() {
+			              	var achievement = $(xml).find($(this).attr("link"));
+			              	if (achievement != null) {
+			              		name += " (" + achievement.attr("short_name") +")";
+			              		points += parseInt(achievement.attr("victory_points"));
+			              	}
+		              	});
+		              	
 		              	var color = $(this).attr("color");
 		              	if (color == "white")
 	                    	newScores += '<span style="color: ' + color + '; background-color: black;">'
 	                    else  
 	                    	newScores += '<span style="color: ' + color + ';">' 
-		                newScores += points + " " + $(this).attr("name") + "</span>";
+		                newScores += points + " " + name + "</span>";
 	              })
 	              $('#scores').html(newScores);
 			  }
@@ -89,7 +98,7 @@ Settlement Controls
                     $.ajax({ 
                         type: "POST",
                         url: "/players/" + playercolor,
-                        data: '<player settlement_points="' + (parseInt($(xml).find('player').attr("victory_points")) - 1) + '"></player>',
+                        data: '<player settlement_victory_points="' + (parseInt($(xml).find('player').attr("settlement_victory_points")) - 1) + '"></player>',
                         });
                 }
                 });
@@ -107,7 +116,7 @@ Settlement Controls
                     $.ajax({ 
                         type: "POST",
                         url: "/players/" + playercolor,
-                        data: '<player settlement_points="' + (parseInt($(xml).find('player').attr("victory_points")) + 1) + '"></player>',
+                        data: '<player settlement_victory_points="' + (parseInt($(xml).find('player').attr("settlement_victory_points")) + 1) + '"></player>',
                         });
                 }
                 });

@@ -49,7 +49,8 @@ public class GameOptionsLoader {
 			int victory_points = Integer.parseInt(attrs.getNamedItem("victory_points").getNodeValue());
 			String short_name = attrs.getNamedItem("short_name").getNodeValue();
 			char character = attrs.getNamedItem("character").getNodeValue().toCharArray()[0];
-			achievements.add(new Achievement(name, victory_points, short_name, character));
+			String ID = attrs.getNamedItem("id").getNodeValue();
+			achievements.add(new Achievement(name, victory_points, short_name, character, ID));
 		}
 		
 		expression = "/game/colors/color";

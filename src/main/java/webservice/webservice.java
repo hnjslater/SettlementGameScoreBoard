@@ -80,6 +80,8 @@ public class webservice  {
 			atts.clear();
 			atts.addAttribute("", "", "name", "CDATA", a.getName());
 			atts.addAttribute("", "", "victory_points", "CDATA", Integer.toString(a.getVictoryPoints()));
+			atts.addAttribute("", "", "short_name", "CDATA", a.getShortName());
+			atts.addAttribute("", "", "id", "CDATA", a.getID());
 			hd.startElement("", "", "achievement", atts);
 			hd.endElement("", "", "achievement");
 		}
@@ -188,8 +190,8 @@ public class webservice  {
 		if (dom.getDocumentElement().hasAttribute("name"))
 			player.setName(dom.getDocumentElement().getAttribute("name"));
 
-		if (dom.getDocumentElement().hasAttribute("settlement_points"))
-			player.setVP(Integer.parseInt(dom.getDocumentElement().getAttribute("settlement_points")));
+		if (dom.getDocumentElement().hasAttribute("settlement_victory_points"))
+			player.setVP(Integer.parseInt(dom.getDocumentElement().getAttribute("settlement_victory_points")));
 
 		List<Achievement> incoming_achievements = new ArrayList<Achievement>();
 		NodeList player_children = dom.getDocumentElement().getChildNodes();
@@ -238,7 +240,7 @@ public class webservice  {
 		atts.clear();
 		atts.addAttribute("","","name","CDATA",p.getName());
 		atts.addAttribute("","","color","CDATA",p.getPlayerColor().toString());
-		atts.addAttribute("", "", "victory_points", "CDATA", Integer.toString(p.getSettlementVP()));
+		atts.addAttribute("", "", "settlement_victory_points", "CDATA", Integer.toString(p.getSettlementVP()));
 		hd.startElement("","","player",atts);
 
 		atts.clear();
@@ -247,18 +249,20 @@ public class webservice  {
 	}
 
 	private void generatePlayerAchievementsXML(TransformerHandler hd, Player p) throws SAXException {
-		AttributesImpl atts = new AttributesImpl();
-		hd.startElement("", "", "achievements", atts);
+		if (p.getAchievements().size() > 0) {
+			AttributesImpl atts = new AttributesImpl();
+			hd.startElement("", "", "achievements", atts);
 
-		for (Achievement a : p.getAchievements()) {
-			atts.clear();
-			atts.addAttribute("", "", "name", "CDATA", a.toString());
+			for (Achievement a : p.getAchievements()) {
+				atts.clear();
+				atts.addAttribute("", "", "link", "CDATA", "#" + a.getID());
 
 
-			hd.startElement("", "", "achievement", atts);
-			hd.endElement("", "", "achievement");
+				hd.startElement("", "", "achievement", atts);
+				hd.endElement("", "", "achievement");
+			}
+			hd.endElement("", "", "achievements");
 		}
-		hd.endElement("", "", "achievements");
 	}
 
 	private TransformerHandler createTransformHandler(

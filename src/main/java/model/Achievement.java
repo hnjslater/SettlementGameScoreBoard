@@ -7,11 +7,13 @@ public class Achievement implements Comparable<Achievement> {
 	private int victory_points;
 	private String short_name;
 	private char character;
-	public Achievement(String name, int victory_points, String short_name, char character) {
+	private String ID;
+	public Achievement(String name, int victory_points, String short_name, char character, String ID) {
 		this.name = name;
 		this.victory_points = victory_points;
 		this.short_name = short_name;
 		this.character = character;
+		this.ID = ID;
 	}
 
 	public String getName() {
@@ -46,6 +48,10 @@ public class Achievement implements Comparable<Achievement> {
 	@Override
 	public String toString() {
 		return getName();
+	}
+
+	public String getID() {
+		return this.ID;
 	}
 	
 }
