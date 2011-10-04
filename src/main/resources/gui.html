@@ -8,8 +8,8 @@ Settlement Controls
 
  <style type="text/css">
     #playercolor { width: 100%; }
- 	#achievement-buttons button { display: block; width: 100%; }
  	#settlement-buttons button {width: 50%; text-align: center;}
+ 	#achievement-buttons div button { width: 50%; }
  	#scores span {display: block; }
  </style>
  
@@ -66,11 +66,11 @@ Settlement Controls
                         .append('<option value="' + $(this).attr("color") + '">' +  $(this).attr("name") + "</option>");
               })
                 
-                
               $(xml).find('rules achievement').each(function(){
                   	var achievement = $(this).attr("name");
-                	$('#achievement-buttons')
-                		.append($('<button>' + achievement + '</button>').click(function() {
+                  	var achivement_id = $(this).attr("id");
+                	
+                	var add_button = $('<button>' + achievement + '</button>').click(function() {
                     		
                				var playercolor = $('#playercolor option:selected').val();
 
@@ -78,12 +78,24 @@ Settlement Controls
                         			type: "POST",
                         			url: "/players/" + playercolor + "/achievements/" + achievement,
                         	});
-
-                    		
-
 				            return false;
-                		})
-                	)
+                		});
+            		var remove_button =  $('<button>-</button>').click(function() {
+                    		
+               				var playercolor = $('#playercolor option:selected').val();
+
+                    		$.ajax({ 
+                        			type: "delete",
+                        			url: "/players/" + playercolor + "/achievements/" + achievement,
+                        	});
+				            return false;
+                		});
+
+            		var buttons_div = $('<div>');
+            		buttons_div.append(add_button);
+            		buttons_div.append(remove_button);
+            		$('#achievement-buttons').append(buttons_div);
+                		
               })
           } // success
         }) // ajax

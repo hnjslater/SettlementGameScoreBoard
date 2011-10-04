@@ -50,7 +50,9 @@ public class GameOptionsLoader {
 			String short_name = attrs.getNamedItem("short_name").getNodeValue();
 			char character = attrs.getNamedItem("character").getNodeValue().toCharArray()[0];
 			String ID = attrs.getNamedItem("id").getNodeValue();
-			achievements.add(new Achievement(name, victory_points, short_name, character, ID));
+			String max_in_game_str = attrs.getNamedItem("max_in_game").getNodeValue();
+			int max_in_game = (max_in_game_str.equals("unlimited")) ? 0 : Integer.parseInt(max_in_game_str);			
+			achievements.add(new Achievement(name, victory_points, short_name, character, ID, max_in_game));
 		}
 		
 		expression = "/game/colors/color";

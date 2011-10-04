@@ -48,7 +48,7 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
                             hz.player.add(hz.achievement);
                         }
                         else {
-                            game.getAchievement(hz.achievement).remove(hz.achievement);
+                            game.getPlayers(hz.achievement).get(0).remove(hz.achievement);
                         }
                     }
                     return;
@@ -57,6 +57,8 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
         }
         }
         catch (Exception ex) {
+        	ex.printStackTrace();
+        	System.out.print(ex.getMessage());
             // Very Iffy....
         }
     }

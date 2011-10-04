@@ -1,9 +1,8 @@
 package model;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Player implements Comparable<Player> {
@@ -18,7 +17,7 @@ public class Player implements Comparable<Player> {
         Sorting the players will result in a call to Alice.compareTo(Bob) which will first compare VPs (equal) and then compare vp_times[3].
         As Alice has a lower vp_times[3], she will be placed above Bob, which seems fair as she got to 3VP first. */
     private int[] vp_times;
-    private Set<Achievement> achievements;
+    private List<Achievement> achievements;
     private String name = "";
     private Integer vp;
     private Object vp_lock;
@@ -28,7 +27,7 @@ public class Player implements Comparable<Player> {
     private GameConstraints constraints;
     
     public Player(PlayerColor color, AtomicInteger sharedCount, GameConstraints constraints) {
-        this.achievements = new HashSet<Achievement>();
+        this.achievements = new ArrayList<Achievement>();
         this.vp_times = new int[200];
         this.color = color;
         this.constraints = constraints; 
@@ -57,7 +56,7 @@ public class Player implements Comparable<Player> {
             this.vp = newVP;
             // if the player points has changed, best update vp_times
             if (newVP != -1) {
-                this.vp_times[getVP()] = sharedCount.getAndIncrement();
+                this.vp_times[100+getVP()] = sharedCount.getAndIncrement();
             }
             
             raisePlayerVPChangedEvent();
@@ -92,10 +91,10 @@ public class Player implements Comparable<Player> {
         else if (this.getVP() > p.getVP()) {
             return -1;
         }
-        else if (this.vp_times[getVP()] < p.vp_times[getVP()]) {
+        else if (this.vp_times[100+getVP()] < p.vp_times[100+getVP()]) {
             return -1;
         }
-        else if (this.vp_times[getVP()] > p.vp_times[getVP()]) {
+        else if (this.vp_times[100+getVP()] > p.vp_times[100+getVP()]) {
             return 1;
         }
         else {
@@ -108,14 +107,14 @@ public class Player implements Comparable<Player> {
     public void add(Achievement a) throws RulesBrokenException {
     	this.constraints.gainAchievement(this, a);
         achievements.add(a);
-        vp_times[getVP()] = sharedCount.getAndIncrement();
+        vp_times[100+getVP()] = sharedCount.getAndIncrement();
         
         raisePlayerVPChangedEvent();
     }
     public void remove(Achievement a) throws RulesBrokenException {
     	this.constraints.looseAchievement(this, a);
         achievements.remove(a);
-        vp_times[getVP()] = -sharedCount.getAndIncrement();
+        vp_times[100+getVP()] = -sharedCount.getAndIncrement();
         raisePlayerVPChangedEvent();
     }
 
@@ -123,8 +122,8 @@ public class Player implements Comparable<Player> {
         return this.color;
     }
 
-    public Set<Achievement> getAchievements() {
-        return Collections.unmodifiableSet(achievements);
+    public Collection<Achievement> getAchievements() {
+        return Collections.unmodifiableList(achievements);
     }
 
     public boolean equals(Object o) {

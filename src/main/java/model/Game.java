@@ -16,7 +16,6 @@ public class Game implements PlayerListener, GameConstraints {
     private List<GameListener> gameListeners;
     private Player winner;
     private Map<PlayerColor,Player> playersByColor;
-    private Map<Achievement,Player> playersByAchievement;
     private AtomicInteger sharedCount;
     private int maxVP = 10;
     private PlayerFactory playerFactory;
@@ -24,10 +23,7 @@ public class Game implements PlayerListener, GameConstraints {
 
     public Game(Collection<Achievement> achievements) {
     	this.achievements = new AchievementCollection(achievements);
-    	
-    	
         this.playersByColor = new HashMap<PlayerColor,Player>();
-        this.playersByAchievement = new HashMap<Achievement,Player>();
         this.gameListeners = Collections.synchronizedList(new ArrayList<GameListener>());
         this.sharedCount = new AtomicInteger();
         this.playerFactory = new PlayerFactory() {
@@ -53,8 +49,6 @@ public class Game implements PlayerListener, GameConstraints {
             raiseWinnerChangedEvent(new GameEvent(this, null));
         }
         playersByColor.remove(player.getPlayerColor());
-        for (Achievement a : player.getAchievements())
-            playersByAchievement.remove(a);
         raisePlayerRemovedEvent(new GameEvent(this, player));
     }
     public List<Player> getLeaderBoard() {
@@ -62,9 +56,6 @@ public class Game implements PlayerListener, GameConstraints {
 
         Collections.sort(players);
         return players;
-    }
-    public Player getPlayer(Achievement a) {
-        return playersByColor.get(playersByAchievement.get(a));
     }
     public Player getPlayer(PlayerColor c) {
         return playersByColor.get(c);
@@ -88,19 +79,25 @@ public class Game implements PlayerListener, GameConstraints {
     }
 
     public void gainAchievement(Player player, Achievement achievement) throws RulesBrokenException {
-            if (playersByAchievement.containsKey(achievement)) {
-                playersByAchievement.get(achievement).remove(achievement);
-            }
-            playersByAchievement.put(achievement,player);
+    	if (achievement.getMaxInGame() == 1) {
+    		synchronized(playersByColor) {
+    			for (Player p : playersByColor.values()) {
+    				p.remove(achievement);
+    			}
+    		}
+    	}
     }
-    public Player getAchievement(Achievement achievement) {
-        if (playersByAchievement.containsKey(achievement))
-            return playersByAchievement.get(achievement);
-        else
-            return null;
+    public List<Player> getPlayers(Achievement achievement) {
+    	List<Player> matches = new ArrayList<Player>();
+    	synchronized(playersByColor) {
+			for (Player p : playersByColor.values()) {
+				if (p.getAchievements().contains(achievement))
+					matches.add(p);
+			}
+    	}
+    	return matches;
     }
     public void looseAchievement(Player player, Achievement achievement) {
-        playersByAchievement.remove(achievement);
     }
     public void addGameListener(GameListener g) {
         this.gameListeners.add(g);

@@ -36,7 +36,7 @@ class ScoreBoardKeyListener extends KeyAdapter {
             case WaitingForAchievement:
                 try {
                     if (e.getKeyChar() == '0') {
-                	Player p = game.getAchievement(achievementToSet);
+                	Player p = game.getPlayers(achievementToSet).get(0);
                 	if (p != null)
                 	    p.remove(achievementToSet);
                     }
