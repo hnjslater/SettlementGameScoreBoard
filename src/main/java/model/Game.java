@@ -21,8 +21,8 @@ public class Game implements PlayerListener, GameConstraints {
     private PlayerFactory playerFactory;
     private final AchievementCollection achievements;
 
-    public Game(Collection<Achievement> achievements) {
-    	this.achievements = new AchievementCollection(achievements);
+    public Game() {
+    	this.achievements = new AchievementCollection();
         this.playersByColor = new HashMap<PlayerColor,Player>();
         this.gameListeners = Collections.synchronizedList(new ArrayList<GameListener>());
         this.sharedCount = new AtomicInteger();

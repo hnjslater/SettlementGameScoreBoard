@@ -8,8 +8,7 @@ public class AchievementCollection extends ArrayList<Achievement> {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	public AchievementCollection(Collection<Achievement> achievements) {
-		super(achievements);
+	public AchievementCollection() {
 	}
 
 	public Achievement findByChar(char c) {

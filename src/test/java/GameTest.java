@@ -112,7 +112,7 @@ extends TestCase
 	{
 		beginReplay();
 
-		Game game = new Game(new ArrayList<Achievement>());
+		Game game = new Game();
 		assertEquals(game.getNumberOfPlayers(), 0);
 		assertNull(game.getPlayer(blue));
 		assertNull(game.getPlayer(green));
@@ -140,7 +140,7 @@ extends TestCase
 	public void testPlayerUniqueness() throws RulesBrokenException
 	{
 		beginReplay();
-		Game game = new Game(new ArrayList<Achievement>());
+		Game game = new Game();
 		game.addPlayer(blue);
 		try {
 			game.addPlayer(blue);
@@ -164,7 +164,7 @@ extends TestCase
 		beginReplay();
 
 
-		Game g = new Game(new ArrayList<Achievement>());
+		Game g = new Game();
 		g.setPlayerFactory(mockPlayerFactory);
 		g.addPlayer(blue);
 		g.addPlayer(red);
@@ -186,7 +186,7 @@ extends TestCase
 
 		beginReplay();	
 
-		Game g = new Game(new ArrayList<Achievement>());
+		Game g = new Game();
 		g.setPlayerFactory(mockPlayerFactory);
 
 		GameListener mockListener = createMock(GameListener.class);
