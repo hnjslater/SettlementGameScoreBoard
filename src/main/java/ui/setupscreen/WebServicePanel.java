@@ -32,13 +32,16 @@ public class WebServicePanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private Webservice webservice;
 	private JLabel image;
-	
+
 	public WebServicePanel(Webservice service) {
 		super(new GridBagLayout());
 		this.webservice = service;
-		
+
 		com.google.zxing.Writer writer = new QRCodeWriter();
 
+
+		image = new JLabel();
+		image.setPreferredSize(new Dimension(200,200));
 		
 		this.setMinimumSize(new Dimension(600, 0));
 
@@ -46,24 +49,25 @@ public class WebServicePanel extends JPanel {
 
 		final JPanel webServicePanel = this;
 		webServicePanel.setBorder(BorderFactory.createTitledBorder("Web Interface"));
-		
+
 		JButton startButton = new JButton("Start");
 		JButton stopButton = new JButton("Stop");
 		final JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-		ActionListener urlButton = new ActionListener() {
+		ActionListener startButtonListener = new ActionListener() {
 			@Override
 			public synchronized void actionPerformed(ActionEvent e) {
 				panel.removeAll();
 				try {
 					webservice.start();
 					generateUrlButtons(panel);
+					showURL(webservice.getInterfaces().get(0));
 
-					
+
 				} catch (Exception e1) {
 					panel.add(new JLabel(e1.getMessage()));
 				}				
-				
+
 			}
 		};
 		try {
@@ -71,7 +75,7 @@ public class WebServicePanel extends JPanel {
 		} catch (Exception e1) {
 			panel.add(new JLabel(e1.getMessage()));
 		}	
-		startButton.addActionListener(urlButton);
+		startButton.addActionListener(startButtonListener);
 		stopButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -81,43 +85,42 @@ public class WebServicePanel extends JPanel {
 				validate();
 				try {
 					webservice.stop();		
-					
+
 				} catch (Exception e1) {
 					panel.add(new JLabel(e1.getMessage()));
 				}				
-				
+
 			}
 		});
 
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		
+
 		JPanel buttonsPanel = new JPanel();
 		buttonsPanel.add(startButton);
 		buttonsPanel.add(stopButton);
-		
+
 		webServicePanel.add(buttonsPanel, gbc);
-		image = new JLabel();
 		webServicePanel.add(image, gbc);
 		webServicePanel.add(panel);
-		
+
 	}
-	
+
 	private void generateUrlButtons(final JPanel panel) throws SocketException {
 		panel.removeAll();
 		GroupLayout layout = new GroupLayout(panel);		
 		panel.setLayout(layout);
-		
+
 		List<String> interfaces = webservice.getInterfaces();
-		
+
 		GroupLayout.SequentialGroup hozGroup = layout.createSequentialGroup();
 		GroupLayout.SequentialGroup vertGroup = layout.createSequentialGroup();		
 		GroupLayout.ParallelGroup vertGroup1 = layout.createParallelGroup();
 		GroupLayout.ParallelGroup vertGroup2 = layout.createParallelGroup();
-		
+
 		vertGroup.addGroup(vertGroup1);
 		vertGroup.addGroup(vertGroup2);
-		
+
 		for (final String s : interfaces) {
 			JButton link = new JButton(s);
 			link.addActionListener(new ActionListener() {
@@ -130,10 +133,10 @@ public class WebServicePanel extends JPanel {
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog(null, ex.getMessage());
 					}
-					
+
 				}
 			});
-			
+
 			JButton qrButton = new JButton("QRCode");
 			qrButton.addActionListener(new ActionListener() {
 				@Override
@@ -152,19 +155,16 @@ public class WebServicePanel extends JPanel {
 		layout.setVerticalGroup(hozGroup);
 		layout.setHorizontalGroup(vertGroup);
 		this.invalidate();
-		((JFrame)(Object)this.getRootPane()).pack();
-		
+
 		revalidate();
 		validate();
 	}
-	
+
 	private void showURL(String url) throws WriterException {
 		QRCodeWriter qrcw = new QRCodeWriter();
 		BitMatrix bm = qrcw.encode(url, BarcodeFormat.QR_CODE, 200, 200, new Hashtable<String,String>());
 		BufferedImage bi = MatrixToImageWriter.toBufferedImage(bm);
-		
-
 		image.setIcon(new ImageIcon(bi));
 	}
-	
+
 }

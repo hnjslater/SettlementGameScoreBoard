@@ -325,6 +325,12 @@ public class Webservice  {
 					handleGui(arg0);		
 				}	       
 			});
+			server.createContext("/GUI", new HttpHandler() {
+				@Override
+				public void handle(HttpExchange arg0) throws IOException {
+					handleGui(arg0);		
+				}	       
+			});
 
 			server.setExecutor(null); // creates a default executor
 			server.start();
