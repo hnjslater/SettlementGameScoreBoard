@@ -7,10 +7,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.BindException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
+import javax.management.RuntimeErrorException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -37,11 +43,13 @@ import org.xml.sax.helpers.AttributesImpl;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-public class webservice  {
+public class Webservice  {
 
 	private model.Game game;
+	private	HttpServer server = null;
+	private int port;
 
-	public webservice(Game game) {
+	public Webservice(Game game) {
 		this.game = game;
 	}
 
@@ -283,28 +291,49 @@ public class webservice  {
 	}
 
 	public void start() throws IOException {
-		HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
-		server.createContext("/", new HttpHandler() {
-			@Override
-			public void handle(HttpExchange arg0) throws IOException {
-				handleRoot(arg0);		
-			}	       
-		});
-		server.createContext("/players", new HttpHandler() {
-			@Override
-			public void handle(HttpExchange arg0) throws IOException {
-				handlePlayers(arg0);		
-			}	       
-		});
-		server.createContext("/gui", new HttpHandler() {
-			@Override
-			public void handle(HttpExchange arg0) throws IOException {
-				handleGui(arg0);		
-			}	       
-		});
+		if (server == null) {
+			int[] ports = {80, 8000, 8001, 8002, 8003, 12000};
+			String errorMessage = "Could not bind to port";
+			for (int i : ports) {
+				try {
+					port = i;
+					server = HttpServer.create(new InetSocketAddress(i), 0);
+					break;
+				}
+				catch (Exception e) {
+					errorMessage = e.getMessage();
+				}
+			}
+			if (server == null) {
+				throw new RuntimeErrorException(null, errorMessage);
+			}
+			server.createContext("/", new HttpHandler() {
+				@Override
+				public void handle(HttpExchange arg0) throws IOException {
+					handleRoot(arg0);		
+				}	       
+			});
+			server.createContext("/players", new HttpHandler() {
+				@Override
+				public void handle(HttpExchange arg0) throws IOException {
+					handlePlayers(arg0);		
+				}	       
+			});
+			server.createContext("/gui", new HttpHandler() {
+				@Override
+				public void handle(HttpExchange arg0) throws IOException {
+					handleGui(arg0);		
+				}	       
+			});
 
-		server.setExecutor(null); // creates a default executor
-		server.start();
+			server.setExecutor(null); // creates a default executor
+			server.start();
+		}
+	}
+	
+	public void stop() {
+		server.stop(1);
+		server = null;
 	}
 
 	protected void handleGui(HttpExchange t) {
@@ -336,6 +365,33 @@ public class webservice  {
 			e.fillInStackTrace();
 			sendErrorMessage(500, t, e.getMessage());
 		}
+	}
+	
+	public List<String> getInterfaces() throws SocketException {
+		List<String> interfaceIPv4 = new ArrayList<String>();
+		List<String> interfaceIPv6 = new ArrayList<String>();
+		if (server != null) {
+			Enumeration<NetworkInterface> interfaces =
+				NetworkInterface.getNetworkInterfaces();				 
+				while (interfaces.hasMoreElements())
+				{
+					NetworkInterface nif = interfaces.nextElement();
+					if (!nif.isLoopback() && nif.isUp()) {
+						Enumeration<InetAddress> addrs = nif.getInetAddresses();
+						while (addrs.hasMoreElements()) {
+							InetAddress ia = addrs.nextElement();
+							// Can't work out how to check the IP version.
+							if (ia.getAddress().length == 4)
+								interfaceIPv4.add("http://" + ia.getHostAddress() + ":" + Integer.toString(this.port) + "/gui");
+							else
+								interfaceIPv6.add("http://[" + ia.getHostAddress() + "]:" + Integer.toString(this.port) + "/gui");
+						}
+					}
+
+				}
+		}
+		interfaceIPv4.addAll(interfaceIPv6);
+		return interfaceIPv4;
 	}
 }
 

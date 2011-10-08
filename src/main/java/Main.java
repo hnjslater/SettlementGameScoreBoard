@@ -2,7 +2,7 @@ import model.Game;
 import model.GameOptions;
 import model.GameOptionsLoader;
 import model.PlayerColor;
-import webservice.webservice;
+import webservice.Webservice;
 class Main {
 
 public static void main(String args[]) throws Exception {
@@ -13,10 +13,9 @@ public static void main(String args[]) throws Exception {
 	        
 	        for (PlayerColor pc : options.getPlayerColors())
 	        	game.addPlayer(pc);
-	        
-	        ui.Controller con = new ui.Controller(game, options);
-	        webservice ws = new webservice(game);
-	        ws.start();
+
+	        Webservice ws = new Webservice(game);
+	        ui.Controller con = new ui.Controller(game, ws, options);
         
             con.run();
         }

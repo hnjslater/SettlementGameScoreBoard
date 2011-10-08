@@ -1,11 +1,13 @@
 package ui.setupscreen;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -14,9 +16,11 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
@@ -31,6 +35,7 @@ import model.GameOptions;
 import model.PlayerColor;
 import model.RulesBrokenException;
 import ui.Controller;
+import webservice.Webservice;
 
 
 public class SetupScreen {
@@ -38,6 +43,7 @@ public class SetupScreen {
 
 	private Controller controller;
 	private Game game;
+	private final Webservice webservice;
 
 	private Object mainLock;
 	private boolean running;
@@ -46,9 +52,10 @@ public class SetupScreen {
 	private Map<Achievement, JCheckBox> achievementPlaying;
 	private JTextField winningVP;
 	private boolean firstRun;
-	public SetupScreen(Controller controller, Game game, GameOptions options) {
+	public SetupScreen(Controller controller, Webservice webservice, Game game, GameOptions options) {
 		this.controller = controller;
 		this.game = game;
+		this.webservice = webservice;
 		
 		
 		this.mainLock = new Object();
@@ -69,7 +76,7 @@ public class SetupScreen {
 		controller.setFullScreen(false);
 		this.running = true;
 
-		JPanel main = new JPanel(new GridBagLayout());
+		JPanel main = new JPanel(new BorderLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
 		gbc.weightx = 1;
@@ -90,12 +97,23 @@ public class SetupScreen {
 				done();
 			}
 		});
-
-		main.add(makeGamePanel(), panelConstraints);
-		main.add(makeAchievementsPanel(), panelConstraints);
-		main.add(makePlayerPanel(), panelConstraints);
 		
-		main.add(doneButton, gbc);
+		JPanel left = new JPanel(new GridBagLayout());
+		JPanel right = new JPanel(new GridBagLayout());
+		JPanel bottom = new JPanel();
+		
+
+		left.add(makeGamePanel(), panelConstraints);
+		left.add(makeAchievementsPanel(), panelConstraints);
+		left.add(makePlayerPanel(), panelConstraints);
+		right.add(new WebServicePanel(webservice), panelConstraints);
+		
+		bottom.add(doneButton);
+		
+		main.add(bottom, BorderLayout.SOUTH);
+		main.add(left, BorderLayout.WEST);
+		main.add(right, BorderLayout.EAST);
+		
 
 		controller.getJFrame().setContentPane(main);
 		controller.getJFrame().pack();
@@ -176,6 +194,7 @@ public class SetupScreen {
 
 	private JPanel makeGamePanel() {	
 		JPanel gamePanel = new JPanel(new GridBagLayout());
+		
 		gamePanel.setBorder(BorderFactory.createTitledBorder("Game Properties"));
 
 		{
@@ -286,6 +305,7 @@ public class SetupScreen {
 		return achievementsPanel;
 	}
 	
+		
 	public void done() {
 		for (PlayerColor pc : this.playerPlaying.keySet()) {
 			// is the player in the game right now?
@@ -336,4 +356,6 @@ public class SetupScreen {
 			mainLock.notifyAll();
 		}
 	}
+
+
 }

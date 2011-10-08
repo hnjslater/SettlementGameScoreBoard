@@ -9,19 +9,22 @@ import model.Game;
 import model.GameOptions;
 import ui.scoreboard.ScoreBoard;
 import ui.setupscreen.SetupScreen;
+import webservice.Webservice;
 
 public class Controller {
     JFrame frame;
     Game game;
     ScoreBoard scoreBoard;
     SetupScreen setupScreen;
+    Webservice ws;
     boolean fullscreen;
     final Object frameLock;
-    public Controller(Game g, GameOptions options) {
+    public Controller(Game g, Webservice ws, GameOptions options) {
         this.frameLock = new Object();
         this.game = g;
         this.scoreBoard = new ScoreBoard(this, g);
-        this.setupScreen = new SetupScreen(this, g, options);
+        this.ws = ws;
+        this.setupScreen = new SetupScreen(this, ws, g, options);
     }
 
     public void run() throws InterruptedException {
