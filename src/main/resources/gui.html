@@ -7,10 +7,12 @@ Settlement Controls
  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>     
 
  <style type="text/css">
+ 	body { background: #000000; }
     #playercolor { width: 100%; }
  	#settlement-buttons button {width: 50%; text-align: center;}
  	#achievement-buttons div button { width: 50%; }
  	#scores span {display: block; }
+ 	
  </style>
  
 <meta name="HandheldFriendly" content="true" />
@@ -37,8 +39,8 @@ Settlement Controls
 		              	});
 		              	
 		              	var color = $(this).attr("color");
-		              	if (color == "white")
-	                    	newScores += '<span style="color: ' + color + '; background-color: black;">'
+		              	if (color == "black")
+	                    	newScores += '<span style="color: ' + color + '; background-color: white;">'
 	                    else  
 	                    	newScores += '<span style="color: ' + color + ';">' 
 		                newScores += points + " " + name + "</span>";

@@ -286,7 +286,7 @@ public class SetupScreen {
 
 	private JPanel makeAchievementsPanel() {	
 		JPanel achievementsPanel = new JPanel(new GridBagLayout());
-		achievementsPanel.setBorder(BorderFactory.createTitledBorder("Game Properties"));
+		achievementsPanel.setBorder(BorderFactory.createTitledBorder("Achievements"));
 
 		for (Achievement a : achievementPlaying.keySet())
 		{
