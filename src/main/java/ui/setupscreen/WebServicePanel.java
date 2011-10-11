@@ -15,7 +15,6 @@ import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -36,10 +35,7 @@ public class WebServicePanel extends JPanel {
 	public WebServicePanel(Webservice service) {
 		super(new GridBagLayout());
 		this.webservice = service;
-
-		com.google.zxing.Writer writer = new QRCodeWriter();
-
-
+		
 		image = new JLabel();
 		image.setPreferredSize(new Dimension(200,200));
 		

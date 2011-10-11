@@ -1,6 +1,5 @@
 package webservice;
 
-import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Collection;
@@ -22,6 +21,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 
 public class XMLSerialiser {
+	
 	
 	void generateXML(OutputStream response, Game game) throws SAXException, TransformerConfigurationException {
 		

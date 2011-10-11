@@ -1,7 +1,6 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 public class AchievementCollection extends ArrayList<Achievement> {
 	/**

@@ -7,7 +7,6 @@ abstract class GUIObject {
     protected int y;
     protected int w;
     protected int h;
-    protected boolean showMouseAffordances;
     public GUIObject(int x, int y, int w, int h) {
         this.x = x;
         this.y = y;
@@ -22,7 +21,5 @@ abstract class GUIObject {
     public abstract int getY(long time);
     public void invalidate() {
     }
-    public void setShowMouseAffordances(boolean show) {
-        this.showMouseAffordances = show;
-    }
+
 }

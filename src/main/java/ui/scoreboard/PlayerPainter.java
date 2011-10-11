@@ -1,17 +1,13 @@
 package ui.scoreboard;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Polygon;
 import java.awt.Shape;
-import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.util.Date;
 import java.util.List;
@@ -74,7 +70,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 		Color bgColor = (game.getWinner() != null && game.getWinner().getPlayerColor().getColor().equals(Color.black)) ? Color.white : Color.black;
 
 		if (startY == -1) {
-			startY =(lineHeight * game.getLeaderBoard().lastIndexOf(player)); 
+			startY =(lineHeig * game.getLeaderBoard().lastIndexOf(player)); 
 			endY = startY;
 		}
 		int cursor = getY(time);       
@@ -92,107 +88,6 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 			graphics.setColor( helper.getGraphicsColor(player.getPlayerColor()) );
 		}
 
-		if (showMouseAffordances) {
-			float unit = lineHeight / 23f;
-			float buttonStart = frameWidth - maxLetterWidth - margin - unit * 16 * 4;
-			float buttonWidth = unit * 16;
-
-			if (game.getWinner() == null) {
-				// Longest Road button
-
-				float currentButtonX = buttonStart + buttonWidth;
-
-				for (Achievement a : game.getAchievements()) {
-					Ellipse2D currentButton = new Ellipse2D.Double(currentButtonX, cursor+unit*4, unit*15, unit*15);
-
-					if (bgColor.equals(helper.getGraphicsColor(player.getPlayerColor()))) {                        
-						graphics.setColor(Color.WHITE);
-						graphics.drawOval((int)currentButton.getX(), (int)currentButton.getY(), (int)currentButton.getWidth(), (int)currentButton.getHeight());
-						if (!player.getAchievements().contains(a)) {
-							drawOutlineText(graphics.getFont(), a.getCharacter(), (Graphics2D)graphics, (int)(currentButtonX + (buttonWidth - unit - paintHelper.widthOfR)/2), cursor+paintHelper.cursorDrop );
-						}                        
-					}
-					else {
-						if (!player.getAchievements().contains(a)) {
-							graphics.fillOval((int)currentButton.getX(), (int)currentButton.getY(), (int)currentButton.getWidth(), (int)currentButton.getHeight());                        
-							graphics.setColor(Color.BLACK);
-							graphics.drawChars( new char[] { a.getCharacter() }, 0, 1, (int)(currentButtonX + (buttonWidth - unit - paintHelper.widthOfR)/2), cursor+paintHelper.cursorDrop );
-							graphics.setColor(player.getPlayerColor().getColor());
-						}
-						else {
-							Stroke normal = ((Graphics2D)graphics).getStroke();
-							Stroke wider = new BasicStroke(4);
-							((Graphics2D)graphics).setStroke(wider);
-							graphics.drawOval((int)currentButton.getX(), (int)currentButton.getY(), (int)currentButton.getWidth(), (int)currentButton.getHeight());
-							((Graphics2D)graphics).setStroke(normal);                        
-						}                	
-					}
-					if (player.getAchievements().contains(a)) {
-						hotZones.add(new HotZone(null,HotZone.ops.ACH,currentButton,a));
-					}
-					else {
-						hotZones.add(new HotZone(player,HotZone.ops.ACH,currentButton,a));
-					}
-
-					currentButtonX -= buttonWidth;
-				}
-				
-				
-
-
-
-
-				// Plus box:
-				graphics.setColor(helper.getGraphicsColor(player.getPlayerColor()));
-				Ellipse2D plusButton = new Ellipse2D.Double(buttonStart + buttonWidth * 2, cursor+unit*4, unit*15, unit*15);
-				graphics.setColor(helper.getGraphicsColor(player.getPlayerColor()));
-				Polygon pol = new Polygon();
-				pol.addPoint((int)(unit*3), 0);
-				pol.addPoint((int)(unit*4), 0);
-				pol.addPoint((int)(unit*4), (int)(unit*3));
-				pol.addPoint((int)(unit*7), (int)(unit*3));
-				pol.addPoint((int)(unit*7), (int)(unit*4));
-				pol.addPoint((int)(unit*4), (int)(unit*4));
-				pol.addPoint((int)(unit*4), (int)(unit*7));
-				pol.addPoint((int)(unit*3), (int)(unit*7));
-				pol.addPoint((int)(unit*3), (int)(unit*4));
-				pol.addPoint(0, (int)(unit*4));
-				pol.addPoint(0, (int)(unit*3));
-				pol.addPoint((int)(unit*3), (int)(unit*3));
-				pol.translate((int)(plusButton.getX()+unit*4), (int)(plusButton.getY()+unit*4));
-
-				if (bgColor.equals(helper.getGraphicsColor(player.getPlayerColor()))) {
-					graphics.setColor(Color.WHITE);
-					graphics.drawOval((int)plusButton.getX(), (int)plusButton.getY(), (int)plusButton.getWidth(), (int)plusButton.getHeight());
-					graphics.drawPolygon(pol);
-					hotZones.add(new HotZone(player,HotZone.ops.INC,plusButton,null));
-
-				}
-				else {
-					graphics.fillOval((int)plusButton.getX(), (int)plusButton.getY(), (int)plusButton.getWidth(), (int)plusButton.getHeight());
-					graphics.setColor(Color.BLACK);
-					graphics.fillPolygon(pol);
-				}
-				hotZones.add(new HotZone(player,HotZone.ops.INC,plusButton, null));
-			}
-			// Minus box:
-			if ((game.getWinner() == null && player.getSettlementVP() > 2) || game.getWinner() == player) {
-				Ellipse2D box2 = new Ellipse2D.Double(buttonStart + buttonWidth*3, cursor+unit*4, unit*15, unit*15);
-				if (bgColor.equals(helper.getGraphicsColor(player.getPlayerColor()))) {
-					graphics.setColor(Color.WHITE);                	
-					graphics.drawOval((int)box2.getX(), (int)box2.getY(), (int)box2.getWidth(), (int)box2.getHeight());                	
-					graphics.drawRect((int)(box2.getX()+unit*4), (int)(box2.getY()+unit*7), (int)(unit*7), (int)(unit));
-				}
-				else {
-					graphics.setColor(helper.getGraphicsColor(player.getPlayerColor()));                	
-					graphics.fillOval((int)box2.getX(), (int)box2.getY(), (int)box2.getWidth(), (int)box2.getHeight());
-					graphics.setColor(Color.BLACK);
-					graphics.fillRect((int)(box2.getX()+unit*4), (int)(box2.getY()+unit*7), (int)(unit*7), (int)(unit));
-				}
-				hotZones.add(new HotZone(player,HotZone.ops.DEC,box2,null));
-			}
-
-		}
 		// if they are equal, then we are not animating
 		return startY == endY;
 	}
@@ -318,10 +213,10 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 		}
 	}
 
-	private void drawOutlineText(Font bigFont, char displayName,
-			Graphics2D graphics, int x, int y) {
-		drawOutlineText(bigFont, Character.toString(displayName), graphics, x, y);
-	}
+//	private void drawOutlineText(Font bigFont, char displayName,
+//			Graphics2D graphics, int x, int y) {
+//		drawOutlineText(bigFont, Character.toString(displayName), graphics, x, y);
+//	}
 	private void drawOutlineText(Font bigFont, String displayName,
 			Graphics2D graphics, int x, int y) {
 

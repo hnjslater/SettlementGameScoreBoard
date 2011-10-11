@@ -39,9 +39,6 @@ public class ScoreBoard implements GameListener {
 	private ScoreBoardHelper helper = new ScoreBoardHelper();
 	private KeyListener keyController;
 	private MouseInputListener mouseController;
-	private boolean showHelp = false;
-	private boolean showColorHelp = true;
-	private boolean showMouseControls = false;
 	private boolean fullScreen = false;
 	private boolean isAnimating = true;
 	private Player winner;
@@ -81,32 +78,6 @@ public class ScoreBoard implements GameListener {
 		this.running = false;
 	}
 
-	public void setShowHelp(boolean showHelp) {
-		this.showHelp = showHelp;
-	}
-
-	public boolean getShowHelp() {
-		return showHelp;
-	}
-
-	public void setShowColorHelp(boolean showHelp) {
-		this.showColorHelp = showHelp;
-	}
-
-	public boolean getShowColorHelp() {
-		return showColorHelp;
-	}
-
-	public void setShowMouseControls(boolean showMouseControls) {
-			for (GUIObject o : guiObjects) {
-				o.setShowMouseAffordances(showMouseControls);
-			}
-		
-	}
-
-	public boolean getShowMouseControls() {
-		return showMouseControls;
-	}
 	public void setState(ScoreBoardState state) {
 		helper.getHelpMessage(state);
 		finishEditing();
