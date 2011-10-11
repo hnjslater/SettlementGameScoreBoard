@@ -10,12 +10,12 @@
         <color name="black"		hex_value="#000000" character="k" />
     </colors>
     <achievements>
-        <achievement name="Longest Road" 		id="StandardGame_LongestRoad"				short_name="LR"	character="l" victory_points="2" 	max_in_game="1" />
+        <achievement name="Longest Road" 		id="StandardGame_LongestRoad"				short_name="LR"	character="r" victory_points="2" 	max_in_game="1" />
         <achievement name="Largest Army" 		id="StandardGame_LargestArmy"				short_name="LA"	character="a" victory_points="2" 	max_in_game="1" />
         <achievement name="Harbour Master" 		id="TradersAndBarbarians_HarbourMaster"		short_name="HM"	character="h" victory_points="2" 	max_in_game="1" />
-        <achievement name="Exploration Bonus" 	id="Seafarers_ExplorationBonus"				short_name="EB"	character="z" victory_points="1" 	max_in_game="unlimited" />
-        <achievement name="Old Boot" 			id="TradersAndBarbarians_OldBoot"			short_name="OB"	character="!" victory_points="-1" 	max_in_game="unlimited" />
-        <achievement name="Poorest Settler" 	id="TradersAndBarbarians_PoorestSettler"	short_name="PS"	character="£" victory_points="-2" 	max_in_game="unlimited" />
-        <achievement name="Wealthiest Settler" 	id="TradersAndBarbarians_WealthiestSettler"	short_name="WS"	character="$" victory_points="1" 	max_in_game="unlimited" />
+        <achievement name="Exploration Bonus" 	id="Seafarers_ExplorationBonus"				short_name="EB"	character="e" victory_points="1" 	max_in_game="unlimited" />
+        <achievement name="Old Boot" 			id="TradersAndBarbarians_OldBoot"			short_name="OB"	character="o" victory_points="-1" 	max_in_game="1" />
+        <achievement name="Poorest Settler" 	id="TradersAndBarbarians_PoorestSettler"	short_name="PS"	character="p" victory_points="-2" 	max_in_game="unlimited" />
+        <achievement name="Wealthiest Settler" 	id="TradersAndBarbarians_WealthiestSettler"	short_name="WS"	character="w" victory_points="1" 	max_in_game="unlimited" />
     </achievements>
 </game>

@@ -3,6 +3,7 @@ package model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,10 +19,10 @@ public class Game implements PlayerListener, GameConstraints {
     private AtomicInteger sharedCount;
     private int maxVP = 10;
     private PlayerFactory playerFactory;
-    private final AchievementCollection achievements;
+    private final Collection<Achievement> achievements;
 
     public Game() {
-    	this.achievements = new AchievementCollection();
+    	this.achievements = Collections.synchronizedList(new ArrayList<Achievement>());
         this.playersByColor = new HashMap<PlayerColor,Player>();
         this.gameListeners = Collections.synchronizedList(new ArrayList<GameListener>());
         this.sharedCount = new AtomicInteger();
@@ -65,7 +66,7 @@ public class Game implements PlayerListener, GameConstraints {
     public Set<PlayerColor> getPlayerColors() {
     	return this.playersByColor.keySet();
     }
-    public AchievementCollection getAchievements() {
+    public Collection<Achievement> getAchievements() {
     	return this.achievements;
     }
     public PlayerColor getPlayerColor(String color) {

@@ -79,7 +79,7 @@ public class PlayerTest
     public void testPlayerVP() throws RulesBrokenException {
     	PlayerColor blue = new PlayerColor("Blue", Color.blue, 'b');
         Player p = new Player(blue, changeNo, mockConstraints);
-        Achievement largestArmy = new Achievement("Largest Army", 2, "LH", 'l', "LargestArmy", 1);
+        Achievement largestArmy = new Achievement("Largest Army", 2, 'l', "LargestArmy", 1);
         
         mockListener.playerVPChanged(new PlayerEvent(p));
         expectLastCall().times(3);

@@ -6,7 +6,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.KeyListener;
+import java.awt.font.TextAttribute;
 import java.awt.image.BufferStrategy;
+import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -23,6 +25,7 @@ import model.GameEvent;
 import model.GameListener;
 import model.Player;
 import model.PlayerColor;
+import model.RulesBrokenException;
 
 public class ScoreBoard implements GameListener {
 
@@ -33,6 +36,7 @@ public class ScoreBoard implements GameListener {
 		SELECT_PLAYER_TO_ADD,
 		EDIT_PLAYER
 	}
+	private ScoreBoardState state = ScoreBoardState.DEFAULT;
 	private JFrame frame;
 	private ui.Controller controller;
 	private Game game;
@@ -44,8 +48,9 @@ public class ScoreBoard implements GameListener {
 	private Player winner;
 	private final Object winnerLock = new Object();
 	private List<GUIObject> guiObjects;
-	private List<HotZone> hotZones;
+	//private List<HotZone> hotZones;
 	private PlayerPainterFactory factory;
+	private Player editing;
 
 	private volatile boolean running;
 	private Thread graphicsThread;
@@ -73,39 +78,21 @@ public class ScoreBoard implements GameListener {
 		helper.getHelpMessage(ScoreBoardState.DEFAULT);
 		this.keyController = new ScoreBoardKeyListener(game, this);
 
-		this.hotZones = Collections.synchronizedList(new LinkedList<HotZone>()); 
-		this.mouseController = new ScoreBoardMouseListener(this,game,hotZones);
+		//this.hotZones = Collections.synchronizedList(new LinkedList<HotZone>()); 
+		//this.mouseController = new ScoreBoardMouseListener(this,game,hotZones);
 		this.running = false;
 	}
 
+	public ScoreBoardState getState() {
+		return this.state;
+	}
 	public void setState(ScoreBoardState state) {
-		helper.getHelpMessage(state);
-		finishEditing();
+		this.state = state;
 	}
 
-	public void setStateAchievement(Achievement achievement) {
-		//"Enter Color of player who has the " + achievement.toString() + ".";
-		finishEditing();
-	}
-
-	public void setStateEditing(PlayerColor playerColor) {
-		//"Editing " + playerColor.toString() + ".";
-
-		PlayerPainter painter = null;
-		for (GUIObject o : guiObjects) {
-			if (o instanceof PlayerPainter && ((PlayerPainter)o).player.getPlayerColor() ==  playerColor) {
-				painter = (PlayerPainter)o;
-			}
-		}
-		painter.setEditing(true);
-	}
-
-	private void finishEditing() {
-		for (GUIObject o : guiObjects) {
-			if (o instanceof PlayerPainter) {
-				((PlayerPainter)o).setEditing(false);
-			}
-		}
+	public void setStateEditing(Player player) {
+		this.editing = player;
+		this.setState(ScoreBoardState.EDIT_PLAYER);
 	}
 
 	public void renderLoop() {
@@ -245,10 +232,53 @@ public class ScoreBoard implements GameListener {
 
 		 
 		isAnimating = false;
-		synchronized(hotZones) { // otherwise sometimes a click will happen when hotZones is empty
-			hotZones.clear();
+		//synchronized(hotZones) { // otherwise sometimes a click will happen when hotZones is empty
+		//	hotZones.clear();
 			for (GUIObject p : guiObjects) {
-				isAnimating |= p.paint(graphics, now, frame.getContentPane().getWidth(), frame.getContentPane().getHeight(), hotZones);
+				List<HotZone> hotZones = new ArrayList<HotZone>();
+				isAnimating |= p.paint(graphics, now, frame.getContentPane().getWidth(), frame.getContentPane().getHeight(), hotZones );
+			}
+		//}
+		Player player = editing;
+		if (this.state == ScoreBoardState.EDIT_PLAYER && player != null) {
+
+			graphics.setFont(bigFont);
+			int height = graphics.getFontMetrics().getHeight() * (game.getAchievements().size()+1);
+			int width = 0;
+			for (Achievement a: game.getAchievements()) {
+				int newWidth = graphics.getFontMetrics().stringWidth(a.getName());
+				if (newWidth > width)
+					width = newWidth;
+			}
+			int nameWidth = graphics.getFontMetrics().stringWidth(player.getName());
+			if (nameWidth > width)
+				width = nameWidth;
+			int x = (frame.getContentPane().getWidth() - width) / 2;
+			int y = (frame.getContentPane().getHeight() - height) / 2;
+
+			if (player.getPlayerColor().getColor().equals(Color.BLACK))
+				graphics.setColor(Color.WHITE);
+			else
+				graphics.setColor(Color.BLACK);	
+			graphics.fillRect(x, y, width, height);
+			graphics.setColor(player.getPlayerColor().getColor());
+				
+			graphics.drawRect(x, y, width, height);
+			graphics.drawLine(x, y + graphics.getFontMetrics().getHeight(), x + width, y + graphics.getFontMetrics().getHeight());
+			int cursor = y + graphics.getFontMetrics().getAscent();
+			graphics.drawString(player.getName(), x + (width - nameWidth)/2, cursor);
+			cursor += graphics.getFontMetrics().getHeight();
+			
+			for (Achievement a: game.getAchievements()) {
+				AttributedString name = new AttributedString(a.getName());
+				name.addAttribute(TextAttribute.FONT, bigFont);
+				int underlineIndex = helper.bestIndexOf(a.getName(), a.getCharacter());
+				if (underlineIndex > -1)
+					name.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON, underlineIndex, underlineIndex+1);
+				
+				graphics.drawString(name.getIterator(), x, cursor);
+				
+				cursor += graphics.getFontMetrics().getHeight();
 			}
 		}
 		
@@ -299,6 +329,40 @@ public class ScoreBoard implements GameListener {
 		
 		for (GUIObject o : guiObjects) {
 			o.invalidate();
+		}
+		
+	}
+
+	public void achievementSelected(Achievement achievement) {
+		try {
+			editing.add(achievement);
+			this.setState(ScoreBoardState.DEFAULT);
+		} catch (RulesBrokenException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+	}
+
+	public void updateVP(int i) {
+		try {
+			editing.setVP(editing.getSettlementVP() + i);
+		} catch (RulesBrokenException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		this.setState(ScoreBoardState.DEFAULT);
+		
+	}
+
+	public void achievementUnselected(Achievement achievement) {
+		try {
+			editing.remove(achievement);
+			this.setState(ScoreBoardState.DEFAULT);
+		} catch (RulesBrokenException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 	}

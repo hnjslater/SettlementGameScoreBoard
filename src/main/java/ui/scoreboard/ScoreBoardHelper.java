@@ -7,7 +7,7 @@ import java.util.Map;
 import model.PlayerColor;
 
 /** Class for all the boring methods ScoreBoard needs */
-class ScoreBoardHelper {
+public class ScoreBoardHelper {
 
     private Map<ScoreBoard.ScoreBoardState, String> helpMessages;
     private String colorHelp;
@@ -44,4 +44,25 @@ class ScoreBoardHelper {
     public String getColorHelp() {
         return colorHelp;
     }
+    
+    public int bestIndexOf(String name, char c) {
+    	if (name == null || name.isEmpty())
+    		return -1;
+    	
+    	String s = name.toLowerCase();
+
+    	int nextWord = -1;
+    	
+    	do {
+    		nextWord++;
+    		if (s.charAt(nextWord) == c) {
+    			return nextWord;
+    		}
+    		nextWord = s.indexOf(" ", nextWord+1);
+    	} while (nextWord != -1);
+    	
+    	return s.indexOf(c);
+    }
+    
+ 
 }

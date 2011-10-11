@@ -31,7 +31,6 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 	int letterWidth;
 	int maxLetterWidth;
 	private PlayerPainterFontHelper paintHelper;
-	private boolean editing;
 	private int frameWidth;
 	private int frameHeight;
 	private int numPlayers;
@@ -70,7 +69,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 		Color bgColor = (game.getWinner() != null && game.getWinner().getPlayerColor().getColor().equals(Color.black)) ? Color.white : Color.black;
 
 		if (startY == -1) {
-			startY =(lineHeig * game.getLeaderBoard().lastIndexOf(player)); 
+			startY =(lineHeight * game.getLeaderBoard().lastIndexOf(player)); 
 			endY = startY;
 		}
 		int cursor = getY(time);       
@@ -78,7 +77,7 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 		graphics.drawImage(playerName,0,cursor + (lineHeight - playerName.getHeight()) /2,null);
 		char[] colorChar = new char[] { helper.getColorChar(player.getPlayerColor())} ;
 
-		if (helper.getGraphicsColor((player.getPlayerColor())) != bgColor) {
+		if (!helper.getGraphicsColor((player.getPlayerColor())).equals(bgColor)) {
 			graphics.setColor( helper.getGraphicsColor(player.getPlayerColor()) );            
 			graphics.drawChars(colorChar , 0, 1, frameWidth-letterWidth-margin, cursor+paintHelper.cursorDrop );
 		}
@@ -123,10 +122,6 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 			recalculateEndPosition();
 		}
 	}
-	public void setEditing(boolean editing) {
-		this.editing = editing;
-		invalidate();
-	}
 
 	/// Player Listener methods
 
@@ -162,13 +157,12 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 
 		// Do as much as we can outside of the synchronized to reduce the change of a deadlock
 		String displayName = player.getName();
-		//Hacky cursor
-		if (editing)
-			displayName += "|";
 
 		// Achievements
+		synchronized(player.getAchievements()) {
 		for (Achievement a : player.getAchievements())
-			displayName += "(" + a.getShortName() + ")";		
+			displayName += "(" + a.getShortName() + ")";
+		}
 
 		String playerVP =  new Integer( player.getVP()).toString();
 		synchronized(playerNameDirtyLock) {
@@ -213,10 +207,10 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 		}
 	}
 
-//	private void drawOutlineText(Font bigFont, char displayName,
-//			Graphics2D graphics, int x, int y) {
-//		drawOutlineText(bigFont, Character.toString(displayName), graphics, x, y);
-//	}
+	private void drawOutlineText(Font bigFont, char displayName,
+			Graphics2D graphics, int x, int y) {
+		drawOutlineText(bigFont, Character.toString(displayName), graphics, x, y);
+	}
 	private void drawOutlineText(Font bigFont, String displayName,
 			Graphics2D graphics, int x, int y) {
 

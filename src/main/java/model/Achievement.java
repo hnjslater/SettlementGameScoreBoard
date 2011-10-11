@@ -5,14 +5,12 @@ import java.util.Collection;
 public class Achievement implements Comparable<Achievement> {
 	private String name;
 	private int victory_points;
-	private String short_name;
 	private char character;
 	private String ID;
 	private int max_in_game;
-	public Achievement(String name, int victory_points, String short_name, char character, String ID, int max_in_game) {
+	public Achievement(String name, int victory_points, char character, String ID, int max_in_game) {
 		this.name = name.intern();
 		this.victory_points = victory_points;
-		this.short_name = short_name.intern();
 		this.character = character;
 		this.ID = ID.intern();
 		this.max_in_game = max_in_game;
@@ -26,8 +24,12 @@ public class Achievement implements Comparable<Achievement> {
 		return victory_points;
 	}
 	
-	public String getShortName() {
-		return short_name;
+	public String getShortName() {		
+		StringBuilder shortName = new StringBuilder();
+		for (String word : getName().split(" ")) {
+			shortName.append(word.charAt(0));
+		}
+		return shortName.toString();
 	}
 	
 	public char getCharacter() {
@@ -98,13 +100,6 @@ public class Achievement implements Comparable<Achievement> {
 		} else if (!this.name.equals(other.name)) {
 			return false;
 		}
-		if (this.short_name == null) {
-			if (other.short_name != null) {
-				return false;
-			}
-		} else if (!this.short_name.equals(other.short_name)) {
-			return false;
-		}
 		if (this.victory_points != other.victory_points) {
 			return false;
 		}
@@ -120,11 +115,16 @@ public class Achievement implements Comparable<Achievement> {
 		result = prime * result + this.max_in_game;
 		result = prime * result
 				+ ((this.name == null) ? 0 : this.name.hashCode());
-		result = prime * result
-				+ ((this.short_name == null) ? 0 : this.short_name.hashCode());
 		result = prime * result + this.victory_points;
 		return result;
 	}
 
+	public static Achievement findByChar(Collection<Achievement> achievements, char c) {
+		char c2 = Character.toLowerCase(c);
+		for (Achievement a : achievements)
+			if (a.getCharacter() == c2)
+				return a;
+		return null;
+ 	}
 	
 }
