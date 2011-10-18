@@ -4,6 +4,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
@@ -21,8 +22,9 @@ import model.PlayerListener;
 
 
 class PlayerPainter extends GUIObject implements PlayerListener {
-	public Player player;
+	public final Player player;
 	private Game game;
+	private final ScoreBoard board;
 	private ScoreBoardHelper helper = new ScoreBoardHelper();
 	private BufferedImage playerName;
 	Boolean playerNameDirty = true;
@@ -39,12 +41,13 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 	private int endY = -1;
 	private long startTime;
 
-	public PlayerPainter(Player p, Game g, PlayerPainterFontHelper paintHelper) {
+	public PlayerPainter(Player p, Game g, ScoreBoard board, PlayerPainterFontHelper paintHelper) {
 		super(0,0,0,0);
 		this.player = p;
 		this.game = g;
 		this.playerName = new BufferedImage(1,1,BufferedImage.TYPE_INT_RGB);
 		this.paintHelper = paintHelper;
+		this.board = board;
 		p.addPlayerListener(this);
 	}
 
@@ -86,7 +89,11 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 			drawOutlineText(paintHelper.font, new String(colorChar), (Graphics2D)graphics, frameWidth-letterWidth-margin, cursor+paintHelper.cursorDrop );
 			graphics.setColor( helper.getGraphicsColor(player.getPlayerColor()) );
 		}
-
+		
+		hotZones.add(new HotZone(new Rectangle(0, getY(time), frameWidth, paintHelper.lineHeight)) {protected void clicked() {
+			board.setStateEditing(player);
+		};});
+		
 		// if they are equal, then we are not animating
 		return startY == endY;
 	}
@@ -159,9 +166,17 @@ class PlayerPainter extends GUIObject implements PlayerListener {
 		String displayName = player.getName();
 
 		// Achievements
-		synchronized(player.getAchievements()) {
-		for (Achievement a : player.getAchievements())
-			displayName += "(" + a.getShortName() + ")";
+		
+		synchronized(game.getAchievements()) {
+			for (Achievement a : game.getAchievements()) {
+				int count = player.getAchievementCount(a);
+				if (count == 1) {					
+					displayName += " (" + a.getShortName() + ")";
+				}
+				else if (count > 1)	{			
+					displayName += " (" + count + "\u00D7" + a.getShortName() + ")";
+				}
+			}
 		}
 
 		String playerVP =  new Integer( player.getVP()).toString();

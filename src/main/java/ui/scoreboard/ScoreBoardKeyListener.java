@@ -2,17 +2,15 @@ package ui.scoreboard;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import model.Achievement;
 import model.Game;
 import model.Player;
-import model.PlayerColor;
-import model.Achievement;
 import ui.scoreboard.ScoreBoard.ScoreBoardState;
 
 
 class ScoreBoardKeyListener extends KeyAdapter {
 	private Game game;
 	private ScoreBoard board;
-	private PlayerColor playerEditing;
 	private ScoreBoardHelper helper; // Sorry
 
 	public ScoreBoardKeyListener(Game game, ScoreBoard board) {
@@ -36,21 +34,13 @@ class ScoreBoardKeyListener extends KeyAdapter {
 				}
 			}                 
 			else if (board.getState() == ScoreBoard.ScoreBoardState.EDIT_PLAYER) {
-				if (e.getKeyChar() == '+') {
-					board.updateVP(+1);
+				if (Character.isUpperCase(e.getKeyChar())) {
+					board.achievementUnselected(Achievement.findByChar(game.getAchievements(),e.getKeyChar()));
 				}
-				else if (e.getKeyChar() == '-') {
-					board.updateVP(-1);
-				}
-				else {
-
-					if (Character.isUpperCase(e.getKeyChar())) {
-						board.achievementUnselected(Achievement.findByChar(game.getAchievements(),e.getKeyChar()));
-					}
-					else
-						board.achievementSelected(Achievement.findByChar(game.getAchievements(),e.getKeyChar()));
-				}
-			}                		
+				else
+					board.achievementSelected(Achievement.findByChar(game.getAchievements(),e.getKeyChar()));
+			}
+                		
 		}
 		catch (Exception ex) {
 			board.setState(ScoreBoardState.DEFAULT);

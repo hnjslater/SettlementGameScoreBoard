@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.KeyListener;
 import java.awt.font.TextAttribute;
@@ -24,7 +25,6 @@ import model.Game;
 import model.GameEvent;
 import model.GameListener;
 import model.Player;
-import model.PlayerColor;
 import model.RulesBrokenException;
 
 public class ScoreBoard implements GameListener {
@@ -48,7 +48,7 @@ public class ScoreBoard implements GameListener {
 	private Player winner;
 	private final Object winnerLock = new Object();
 	private List<GUIObject> guiObjects;
-	//private List<HotZone> hotZones;
+	private List<HotZone> hotZones;
 	private PlayerPainterFactory factory;
 	private Player editing;
 
@@ -72,14 +72,14 @@ public class ScoreBoard implements GameListener {
 
 
 		for (Player player : game.getLeaderBoard()) {
-			guiObjects.add(factory.getPainter(player, game));
+			guiObjects.add(factory.getPainter(player, game, this));
 		}
 		game.addGameListener(this);
 		helper.getHelpMessage(ScoreBoardState.DEFAULT);
 		this.keyController = new ScoreBoardKeyListener(game, this);
 
-		//this.hotZones = Collections.synchronizedList(new LinkedList<HotZone>()); 
-		//this.mouseController = new ScoreBoardMouseListener(this,game,hotZones);
+		this.hotZones = Collections.synchronizedList(new LinkedList<HotZone>()); 
+		this.mouseController = new ScoreBoardMouseListener(this,game,hotZones);
 		this.running = false;
 	}
 
@@ -232,55 +232,118 @@ public class ScoreBoard implements GameListener {
 
 		 
 		isAnimating = false;
-		//synchronized(hotZones) { // otherwise sometimes a click will happen when hotZones is empty
-		//	hotZones.clear();
-			for (GUIObject p : guiObjects) {
-				List<HotZone> hotZones = new ArrayList<HotZone>();
-				isAnimating |= p.paint(graphics, now, frame.getContentPane().getWidth(), frame.getContentPane().getHeight(), hotZones );
-			}
-		//}
-		Player player = editing;
-		if (this.state == ScoreBoardState.EDIT_PLAYER && player != null) {
+		List<HotZone> newHotZones = new ArrayList<HotZone>();
+		for (GUIObject p : guiObjects) {
+			isAnimating |= p.paint(graphics, now, frame.getContentPane().getWidth(), frame.getContentPane().getHeight(), newHotZones );
+		}
 
+		final Player player = editing;
+		final ScoreBoard board = this;
+		if (this.state == ScoreBoardState.EDIT_PLAYER && player != null) {
+			newHotZones.clear();
 			graphics.setFont(bigFont);
-			int height = graphics.getFontMetrics().getHeight() * (game.getAchievements().size()+1);
-			int width = 0;
+			int lineHeight = graphics.getFontMetrics().getHeight();
+			int h = lineHeight * (game.getAchievements().size()+1);
+			int w = 0;
 			for (Achievement a: game.getAchievements()) {
-				int newWidth = graphics.getFontMetrics().stringWidth(a.getName());
-				if (newWidth > width)
-					width = newWidth;
+				int newWidth = graphics.getFontMetrics().stringWidth("+ " + a.getName());
+				if (newWidth > w)
+					w = newWidth;
 			}
 			int nameWidth = graphics.getFontMetrics().stringWidth(player.getName());
-			if (nameWidth > width)
-				width = nameWidth;
-			int x = (frame.getContentPane().getWidth() - width) / 2;
-			int y = (frame.getContentPane().getHeight() - height) / 2;
-
+			if (nameWidth > w)
+				w = nameWidth;
+			w += lineHeight; // for the minus button
+			int x = (frame.getContentPane().getWidth() - w) / 2;
+			int y = (frame.getContentPane().getHeight() - h) / 2;
+			int ascent = graphics.getFontMetrics().getAscent(); 
+			int descent = graphics.getFontMetrics().getDescent();
 			if (player.getPlayerColor().getColor().equals(Color.BLACK))
 				graphics.setColor(Color.WHITE);
 			else
 				graphics.setColor(Color.BLACK);	
-			graphics.fillRect(x, y, width, height);
+			graphics.fillRect(x, y, w, h);
 			graphics.setColor(player.getPlayerColor().getColor());
 				
-			graphics.drawRect(x, y, width, height);
-			graphics.drawLine(x, y + graphics.getFontMetrics().getHeight(), x + width, y + graphics.getFontMetrics().getHeight());
-			int cursor = y + graphics.getFontMetrics().getAscent();
-			graphics.drawString(player.getName(), x + (width - nameWidth)/2, cursor);
-			cursor += graphics.getFontMetrics().getHeight();
+			graphics.drawRect(x, y, w, h);
+			graphics.drawLine(x, y + lineHeight, x + w, y + lineHeight);
 			
-			for (Achievement a: game.getAchievements()) {
-				AttributedString name = new AttributedString(a.getName());
+			int cursor = y + ascent;
+			graphics.drawString(player.getName(), x + (w - nameWidth)/2, cursor);
+			cursor += lineHeight;
+			
+			for (final Achievement a: game.getAchievements()) {
+				String mainText = "+ " + a.getName();
+				if (player.getAchievements().contains(a) && a.getMaxInGame() == 1) {
+					mainText = "\u2212 " + a.getName();
+				}
+				AttributedString name = new AttributedString(mainText);
 				name.addAttribute(TextAttribute.FONT, bigFont);
-				int underlineIndex = helper.bestIndexOf(a.getName(), a.getCharacter());
+				int underlineIndex = helper.bestIndexOf(mainText, a.getCharacter());
 				if (underlineIndex > -1)
 					name.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON, underlineIndex, underlineIndex+1);
 				
 				graphics.drawString(name.getIterator(), x, cursor);
+				graphics.drawLine(x, cursor - ascent, x + w, cursor - ascent);
 				
-				cursor += graphics.getFontMetrics().getHeight();
+				Rectangle minusButton = null;
+				Rectangle plusButton = new Rectangle(x,cursor - ascent,w-lineHeight, lineHeight);
+				if (a.getMaxInGame() != 1 && player.getAchievementCount(a) > 0) {
+					graphics.drawLine(x + w - lineHeight, cursor - ascent, x+w-lineHeight, cursor + descent);
+					String minusSymbol ="\u2212"; 
+					graphics.drawString(minusSymbol, x+w-lineHeight + (lineHeight - graphics.getFontMetrics().stringWidth(minusSymbol))/2, cursor);
+					minusButton = new Rectangle(x+w-lineHeight,cursor - ascent,lineHeight, lineHeight);
+				}
+				else if (player.getAchievements().contains(a) && (a.getMaxInGame() == 1 || a.getMaxPerPlayer() == 1)) {
+					minusButton = plusButton;
+					plusButton = null;
+				}
+				if (plusButton != null) {
+					newHotZones.add(new HotZone(plusButton)
+					{
+						@Override
+						protected void clicked() {
+							// TODO Auto-generated method stub
+							try {
+								player.add(a);
+								board.setState(ScoreBoardState.DEFAULT);
+
+							} catch (RulesBrokenException e) {
+							}
+						}	
+					});
+				}
+				
+				if (minusButton != null) {
+					newHotZones.add(new HotZone(minusButton)
+					{
+						@Override
+						protected void clicked() {
+							// TODO Auto-generated method stub
+							try {
+								player.remove(a);
+								board.setState(ScoreBoardState.DEFAULT);
+							} catch (RulesBrokenException e) {
+							}
+						}	
+					});
+				}
+
+				cursor += lineHeight;
 			}
+			newHotZones.add(new HotZone(new Rectangle(0,0,frame.getContentPane().getWidth(), frame.getContentPane().getHeight())) {
+				
+				@Override
+				protected void clicked() {
+					board.setState(ScoreBoardState.DEFAULT);
+				}
+			});
 		}
+		synchronized(hotZones) { // otherwise sometimes a click will happen when hotZones is empty
+			hotZones.clear();
+			hotZones.addAll(newHotZones);
+		}
+		
 		
 		graphics.dispose();
 		bf.show();
@@ -325,7 +388,7 @@ public class ScoreBoard implements GameListener {
 	}
 
 	public void playerAdded(GameEvent e) {
-		guiObjects.add(factory.getPainter(e.getPlayer(), game));
+		guiObjects.add(factory.getPainter(e.getPlayer(), game, this));
 		
 		for (GUIObject o : guiObjects) {
 			o.invalidate();
@@ -338,21 +401,8 @@ public class ScoreBoard implements GameListener {
 			editing.add(achievement);
 			this.setState(ScoreBoardState.DEFAULT);
 		} catch (RulesBrokenException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		
-		
-	}
-
-	public void updateVP(int i) {
-		try {
-			editing.setVP(editing.getSettlementVP() + i);
-		} catch (RulesBrokenException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		this.setState(ScoreBoardState.DEFAULT);
 		
 	}
 
@@ -361,8 +411,6 @@ public class ScoreBoard implements GameListener {
 			editing.remove(achievement);
 			this.setState(ScoreBoardState.DEFAULT);
 		} catch (RulesBrokenException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		
 	}

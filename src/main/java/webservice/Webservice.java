@@ -156,9 +156,6 @@ public class Webservice  {
 		if (dom.getDocumentElement().hasAttribute("name"))
 			player.setName(dom.getDocumentElement().getAttribute("name"));
 
-		if (dom.getDocumentElement().hasAttribute("settlement_victory_points"))
-			player.setVP(Integer.parseInt(dom.getDocumentElement().getAttribute("settlement_victory_points")));
-
 		List<Achievement> incoming_achievements = new ArrayList<Achievement>();
 		NodeList player_children = dom.getDocumentElement().getChildNodes();
 		if (player_children.getLength() > 0) {

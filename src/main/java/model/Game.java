@@ -38,6 +38,11 @@ public class Game implements PlayerListener, GameConstraints {
         Player player = playerFactory.createPlayer(color, sharedCount, this);
         player.addPlayerListener(this);
         playersByColor.put(color,player);
+        Achievement settlement = Achievement.findById(achievements, "StandardGame_Settlement");
+        if (settlement != null) {
+        	player.add(settlement);
+        	player.add(settlement);
+        }
         raisePlayerAddedEvent(new GameEvent(this, player));
     }
     public void setPlayerFactory(PlayerFactory pf) {
@@ -84,6 +89,19 @@ public class Game implements PlayerListener, GameConstraints {
     			for (Player p : playersByColor.values()) {
     				p.remove(achievement);
     			}
+    		}
+    	}
+    	int count =player.getAchievementCount(achievement); 
+    	if (count >= achievement.getMaxPerPlayer()) {
+    		throw new RulesBrokenException("Player already has " + achievement + " " + count + " times.");
+    	}
+    	if (achievement.getCharacter() == 'c') {
+    		synchronized(player.getAchievements()) {
+    			Achievement settlement = Achievement.findByChar(getAchievements(), 's');
+    			if (player.getAchievementCount(settlement) == 0) {
+    				throw new RulesBrokenException("Player must have a settlement");
+    			}
+    			player.remove(settlement);
     		}
     	}
     }

@@ -3,7 +3,9 @@ package model;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -30,7 +32,7 @@ public class GameOptionsLoader {
 	}
 	
 	public static GameOptions load() throws ParserConfigurationException, SAXException, IOException, TransformerException, XPathException {
-		Set<Achievement> achievements = new HashSet<Achievement>();
+		List<Achievement> achievements = new ArrayList<Achievement>();
 		Set<PlayerColor> playerColors = new HashSet<PlayerColor>();
 		
 		InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("game.xml");
@@ -49,9 +51,20 @@ public class GameOptionsLoader {
 			int victory_points = Integer.parseInt(attrs.getNamedItem("victory_points").getNodeValue());
 			char character = attrs.getNamedItem("character").getNodeValue().toCharArray()[0];
 			String ID = attrs.getNamedItem("id").getNodeValue();
-			String max_in_game_str = attrs.getNamedItem("max_in_game").getNodeValue();
-			int max_in_game = (max_in_game_str.equals("unlimited")) ? 0 : Integer.parseInt(max_in_game_str);			
-			achievements.add(new Achievement(name, victory_points, character, ID, max_in_game));
+			
+			int max_in_game = Integer.MAX_VALUE;
+			if (attrs.getNamedItem("max_in_game") != null) {
+				String max_in_game_str = attrs.getNamedItem("max_in_game").getNodeValue();
+				max_in_game = (max_in_game_str.equals("unlimited")) ? Integer.MAX_VALUE : Integer.parseInt(max_in_game_str);
+			}
+
+			int max_per_player = Integer.MAX_VALUE;
+			if (attrs.getNamedItem("max_per_player") != null) {
+				String max_per_player_string = attrs.getNamedItem("max_per_player").getNodeValue();
+				max_per_player = (max_per_player_string.equals("unlimited")) ? Integer.MAX_VALUE : Integer.parseInt(max_per_player_string);
+			}
+			
+			achievements.add(new Achievement(name, victory_points, character, ID, max_in_game, max_per_player));
 		}
 		
 		expression = "/game/colors/color";

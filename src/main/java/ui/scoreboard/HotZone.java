@@ -1,20 +1,28 @@
 package ui.scoreboard;
-import model.*;
 
-
+import java.awt.Point;
 import java.awt.Shape;
-public class HotZone {
 
-    public enum ops {INC, DEC, ACH};
+public abstract class HotZone {
 
-    public HotZone(Player p, ops o, Shape z, Achievement a) {
-        this.player = p;
-        this.operation = o;
-        this.zone = z;
-        this.achievement = a;
-    }
-    public ops operation;
-    public Player player;
-    public Shape zone;
-    public Achievement achievement;
+	private Shape s;
+	
+	public HotZone(Shape s) {
+		this.s = s;
+	}
+	
+	public boolean maybeClicked(Point p) {
+		if (s.contains(p)) {
+			this.clicked();
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+
+	protected abstract void clicked();
+	
+
 }

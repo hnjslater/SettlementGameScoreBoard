@@ -17,9 +17,9 @@ public class AchievementTest extends TestCase {
     }
     
     public void testGetShortName() {
-    	assertEquals(new Achievement("Settlement", 2, 's', "BLAH", 2).getShortName(), "S");
-    	assertEquals(new Achievement("Longest Road", 2, 's', "BLAH", 2).getShortName(), "LR");
-    	assertEquals(new Achievement("Longest Blah Road", 2, 's', "BLAH", 2).getShortName(), "LBR");
+    	assertEquals(new Achievement("Settlement", 2, 's', "BLAH", 0, 0).getShortName(), "S");
+    	assertEquals(new Achievement("Longest Road", 2, 's', "BLAH", 2, 0).getShortName(), "LR");
+    	assertEquals(new Achievement("Longest Blah Road", 2, 's', "BLAH", 0, 0).getShortName(), "LBR");
     	
     }
 }

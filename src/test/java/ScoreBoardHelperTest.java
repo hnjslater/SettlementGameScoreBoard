@@ -1,14 +1,7 @@
-import static org.easymock.EasyMock.createMock;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import model.GameConstraints;
-import model.PlayerListener;
-
-import ui.scoreboard.*;
+import ui.scoreboard.ScoreBoardHelper;
 
 public class ScoreBoardHelperTest 
     extends TestCase

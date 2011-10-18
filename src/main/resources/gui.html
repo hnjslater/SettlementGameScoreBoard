@@ -52,7 +52,7 @@ Settlement Controls
 
 	function updateScores() {
 		updateScoresOnce();
-		window.setTimeout('updateScores()', 1000);
+		window.setTimeout('updateScores()', 10000);
 	}
 
      $(document).ready(function(){
@@ -79,7 +79,11 @@ Settlement Controls
                     		$.ajax({ 
                         			type: "POST",
                         			url: "/players/" + playercolor + "/achievements/" + achievement,
+                        			success: function() {
+                    					updateScoresOnce();
+                    				}
                         	});
+                        	
 				            return false;
                 		});
             		var remove_button =  $('<button>-</button>').click(function() {
@@ -89,6 +93,9 @@ Settlement Controls
                     		$.ajax({ 
                         			type: "delete",
                         			url: "/players/" + playercolor + "/achievements/" + achievement,
+                        			success: function() {
+                    					updateScoresOnce();
+                    				}
                         	});
 				            return false;
                 		});
@@ -101,43 +108,7 @@ Settlement Controls
               })
           } // success
         }) // ajax
-
-        $('#minus-one').click(function() {
-            var playercolor = $('#playercolor option:selected').val();
-
-            $.ajax({ 
-                url: "/players/" + playercolor,
-                datatype: "xml",
-                success: function ( xml ) {
-                    $.ajax({ 
-                        type: "POST",
-                        url: "/players/" + playercolor,
-                        data: '<player settlement_victory_points="' + (parseInt($(xml).find('player').attr("settlement_victory_points")) - 1) + '"></player>',
-                        });
-                }
-                });
-
-            return false;
-        });
-
-        $('#plus-one').click(function() {
-            var playercolor = $('#playercolor option:selected').val();
-
-            $.ajax({ 
-                url: "/players/" + playercolor,
-                datatype: "xml",
-                success: function ( xml ) {
-                    $.ajax({ 
-                        type: "POST",
-                        url: "/players/" + playercolor,
-                        data: '<player settlement_victory_points="' + (parseInt($(xml).find('player').attr("settlement_victory_points")) + 1) + '"></player>',
-                        });
-                }
-                });
-
-            return false;
-        })
-
+  
      }); // document.ready
 
 </script>
@@ -148,9 +119,6 @@ Settlement Controls
 <hr />
 <div>
 	<select id="playercolor"></select>
-</div>
-<div id="settlement-buttons">
-	<button id="minus-one">-1</button><button id="plus-one">+1</button>
 </div>
 <div id="achievement-buttons">
 </div>

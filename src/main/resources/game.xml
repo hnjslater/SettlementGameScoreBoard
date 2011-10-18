@@ -7,15 +7,17 @@
         <color name="orange"	hex_value="#FF7F00" character="o" />
         <color name="white"		hex_value="#FFFFFF" character="w" />
         <color name="brown"		hex_value="#872A2A" character="n" />
-        <color name="black"		hex_value="#000000" character="k" />
+        <color name="black"		hex_value="#36454F" character="k" />
     </colors>
     <achievements>
-        <achievement name="Longest Road" 		id="StandardGame_LongestRoad"				short_name="LR"	character="r" victory_points="2" 	max_in_game="1" />
-        <achievement name="Largest Army" 		id="StandardGame_LargestArmy"				short_name="LA"	character="a" victory_points="2" 	max_in_game="1" />
-        <achievement name="Harbour Master" 		id="TradersAndBarbarians_HarbourMaster"		short_name="HM"	character="h" victory_points="2" 	max_in_game="1" />
-        <achievement name="Exploration Bonus" 	id="Seafarers_ExplorationBonus"				short_name="EB"	character="e" victory_points="1" 	max_in_game="unlimited" />
-        <achievement name="Old Boot" 			id="TradersAndBarbarians_OldBoot"			short_name="OB"	character="o" victory_points="-1" 	max_in_game="1" />
-        <achievement name="Poorest Settler" 	id="TradersAndBarbarians_PoorestSettler"	short_name="PS"	character="p" victory_points="-2" 	max_in_game="unlimited" />
-        <achievement name="Wealthiest Settler" 	id="TradersAndBarbarians_WealthiestSettler"	short_name="WS"	character="w" victory_points="1" 	max_in_game="unlimited" />
+        <achievement name="Settlement" 			id="StandardGame_Settlement"				character="s" victory_points="1" 	max_per_player="5" />
+        <achievement name="City" 				id="StandardGame_City"						character="c" victory_points="2"    max_per_player="4" />
+        <achievement name="Longest Road" 		id="StandardGame_LongestRoad"				character="r" victory_points="2" 	max_in_game="1" />
+        <achievement name="Largest Army" 		id="StandardGame_LargestArmy"				character="a" victory_points="2" 	max_in_game="1" />
+        <achievement name="Harbour Master" 		id="TradersAndBarbarians_HarbourMaster"		character="h" victory_points="2" 	max_in_game="1" />
+        <achievement name="Exploration Bonus" 	id="Seafarers_ExplorationBonus"				character="e" victory_points="1" 	 />
+        <achievement name="Old Boot" 			id="TradersAndBarbarians_OldBoot"			character="o" victory_points="-1" 	max_in_game="1" />
+        <achievement name="Poorest Settler" 	id="TradersAndBarbarians_PoorestSettler"	character="p" victory_points="-2" 	max_per_player="1" />
+        <achievement name="Wealthiest Settler" 	id="TradersAndBarbarians_WealthiestSettler"	character="w" victory_points="1" 	max_in_game="1"  />
     </achievements>
 </game>

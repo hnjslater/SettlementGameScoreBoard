@@ -79,16 +79,15 @@ public class PlayerTest
     public void testPlayerVP() throws RulesBrokenException {
     	PlayerColor blue = new PlayerColor("Blue", Color.blue, 'b');
         Player p = new Player(blue, changeNo, mockConstraints);
-        Achievement largestArmy = new Achievement("Largest Army", 2, 'l', "LargestArmy", 1);
+        Achievement largestArmy = new Achievement("Largest Army", 2, 'l', "LargestArmy", 1, Integer.MAX_VALUE);
         
         mockListener.playerVPChanged(new PlayerEvent(p));
-        expectLastCall().times(3);
+        expectLastCall().times(2);
                 
         replay(mockListener);
         
         p.addPlayerListener(mockListener);
         
-        p.setVP(10);
         p.add(largestArmy);
         p.remove(largestArmy);
         
@@ -96,7 +95,6 @@ public class PlayerTest
         p.removePlayerListener(mockListener);
         
         // none of these should pass events to mockListener:
-        p.setVP(12);
         p.add(largestArmy);
         p.remove(largestArmy);
         
@@ -110,6 +108,8 @@ public class PlayerTest
         Player pB = new Player(blue, changeNo, mockConstraints);
         Player pG = new Player(green, changeNo, mockConstraints);
         
+        Achievement a = new Achievement("",1,'a',"",Integer.MAX_VALUE, Integer.MAX_VALUE);
+        
         // sanity check
         assertTrue (pB.compareTo(pB) == 0);
         assertTrue (pG.compareTo(pG) == 0);
@@ -117,21 +117,22 @@ public class PlayerTest
         assertTrue (pG.compareTo(pB) != 0);
         
         // Give Blue some points
-        pB.setVP(3);
+        pB.add(a);
         
         // Now Green should be less than Blue
         assertTrue (pB.compareTo(pG) < 0);
         assertTrue (pG.compareTo(pB) > 0);
         
         // Put Green ahead;
-        pG.setVP(4);
+        pG.add(a);
+        pG.add(a);
         
         // Now Green should be more than Blue
         assertTrue (pB.compareTo(pG) > 0);
         assertTrue (pG.compareTo(pB) < 0);
         
         // Catch Blue up:
-        pB.setVP(4);
+        pB.add(a);
         
         // Green should still be ahead (as they got there first);
         assertTrue (pB.compareTo(pG) > 0);

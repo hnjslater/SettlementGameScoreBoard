@@ -10,9 +10,9 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -56,13 +56,13 @@ public class SetupScreen {
 		
 		
 		this.mainLock = new Object();
-		this.playerPlaying = new TreeMap<PlayerColor, JCheckBox>();		
-		this.playerNames = new TreeMap<PlayerColor, JTextField>();
+		this.playerPlaying = new LinkedHashMap<PlayerColor, JCheckBox>();		
+		this.playerNames = new LinkedHashMap<PlayerColor, JTextField>();
 		for (PlayerColor pc : options.getPlayerColors()) {
 			playerPlaying.put(pc, null);
 			playerNames.put(pc, null);
 		}
-		this.achievementPlaying = new TreeMap<Achievement, JCheckBox>();
+		this.achievementPlaying = new LinkedHashMap<Achievement, JCheckBox>();
 		for (Achievement a : options.getAchievements() ) {
 			achievementPlaying.put(a, null);
 		}
@@ -139,7 +139,6 @@ public class SetupScreen {
 		Collections.sort(playerColors, new Comparator<PlayerColor>() {
 			@Override
 			public int compare(PlayerColor o1, PlayerColor o2) {
-				// TODO Auto-generated method stub
 				return o1.toString().compareTo(o2.toString());
 			}
 		});
@@ -285,19 +284,21 @@ public class SetupScreen {
 		JPanel achievementsPanel = new JPanel(new GridBagLayout());
 		achievementsPanel.setBorder(BorderFactory.createTitledBorder("Achievements"));
 
-		for (Achievement a : achievementPlaying.keySet())
-		{
-			GridBagConstraints gbc = new GridBagConstraints();
-			gbc.anchor = GridBagConstraints.WEST;
-			gbc.gridwidth = GridBagConstraints.REMAINDER;
-			gbc.fill = GridBagConstraints.HORIZONTAL;
-			gbc.weightx = 1;
-			JCheckBox checkbox = new JCheckBox(a.getName());
-			if (game.getAchievements().contains(a))
-				checkbox.setSelected(true);
-			achievementsPanel.add(checkbox, gbc);
-			achievementPlaying.put(a, checkbox);
-		}
+		
+			for (Achievement a : this.achievementPlaying.keySet())
+			{
+				GridBagConstraints gbc = new GridBagConstraints();
+				gbc.anchor = GridBagConstraints.WEST;
+				gbc.gridwidth = GridBagConstraints.REMAINDER;
+				gbc.fill = GridBagConstraints.HORIZONTAL;
+				gbc.weightx = 1;
+				JCheckBox checkbox = new JCheckBox(a.getName());
+				if (game.getAchievements().contains(a))
+					checkbox.setSelected(true);
+				achievementsPanel.add(checkbox, gbc);
+				achievementPlaying.put(a, checkbox);
+			}
+		
 		
 		return achievementsPanel;
 	}
@@ -335,7 +336,7 @@ public class SetupScreen {
 		}
 		catch (NumberFormatException ex) {
 		}
-		for (Achievement a : this.achievementPlaying.keySet()) {
+		for (Achievement a : achievementPlaying.keySet()) {
 			boolean achievementCurrent = (game.getAchievements().contains(a));
 			boolean achievementShould = achievementPlaying.get(a).isSelected();
 			if (!achievementCurrent && achievementShould) {
@@ -344,7 +345,7 @@ public class SetupScreen {
 			else if (achievementCurrent && !achievementShould) {
 				game.getAchievements().remove(a);
 			}
-		}
+		}	
 	}
 
 	public void stop() {

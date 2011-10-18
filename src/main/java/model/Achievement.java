@@ -8,12 +8,14 @@ public class Achievement implements Comparable<Achievement> {
 	private char character;
 	private String ID;
 	private int max_in_game;
-	public Achievement(String name, int victory_points, char character, String ID, int max_in_game) {
+	private int max_per_player;
+	public Achievement(String name, int victory_points, char character, String ID, int max_in_game, int max_per_player) {
 		this.name = name.intern();
 		this.victory_points = victory_points;
 		this.character = character;
 		this.ID = ID.intern();
 		this.max_in_game = max_in_game;
+		this.max_per_player = max_per_player;
 	}
 
 	public String getName() {
@@ -38,6 +40,11 @@ public class Achievement implements Comparable<Achievement> {
 	
 	public int getMaxInGame() {
 		return this.max_in_game;
+	}
+	
+
+	public int getMaxPerPlayer() {
+		return this.max_per_player;
 	}
 	
 	public String getID() {
@@ -123,6 +130,13 @@ public class Achievement implements Comparable<Achievement> {
 		char c2 = Character.toLowerCase(c);
 		for (Achievement a : achievements)
 			if (a.getCharacter() == c2)
+				return a;
+		return null;
+ 	}
+	
+	public static Achievement findById(Collection<Achievement> achievements, String id) {
+		for (Achievement a : achievements)
+			if (a.getID().equals(id))
 				return a;
 		return null;
  	}

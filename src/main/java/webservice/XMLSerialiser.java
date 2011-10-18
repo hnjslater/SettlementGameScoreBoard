@@ -70,7 +70,8 @@ public class XMLSerialiser {
 		atts.clear();
 		atts.addAttribute("","","name","CDATA",p.getName());
 		atts.addAttribute("","","color","CDATA",p.getPlayerColor().toString());
-		atts.addAttribute("", "", "settlement_victory_points", "CDATA", Integer.toString(p.getSettlementVP()));
+		atts.addAttribute("", "", "hex_value", "CDATA", "#" + Integer.toHexString(p.getPlayerColor().getColor().getRGB()).substring(2));
+		atts.addAttribute("", "", "settlement_victory_points", "CDATA", "0");
 		hd.startElement("","","player",atts);
 
 		atts.clear();

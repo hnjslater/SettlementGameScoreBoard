@@ -24,6 +24,9 @@ class ScoreBoardMouseListener extends MouseInputAdapter {
         try {
         	synchronized(hotZones) {
         		for (HotZone hz : hotZones) {
+        			if (hz.maybeClicked(me.getPoint())) {
+        				break;
+        			}
         		}
         	}
         }

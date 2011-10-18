@@ -23,8 +23,6 @@ public class Player implements Comparable<Player> {
 	private int[] vp_times;
 	private final List<Achievement> achievements;
 	private String name = "";
-	private Integer vp;
-	private Object vp_lock;
 	private PlayerColor color;
 	private final List<PlayerListener> playerListeners;
 	private AtomicInteger sharedCount;
@@ -42,8 +40,6 @@ public class Player implements Comparable<Player> {
 		this.playerListeners = Collections
 				.synchronizedList(new ArrayList<PlayerListener>());
 		this.sharedCount = sharedCount;
-		this.vp = 2;
-		this.vp_lock = new Object();
 		resetName();
 	}
 
@@ -60,29 +56,8 @@ public class Player implements Comparable<Player> {
 		setName(color.toString());
 	}
 
-	/** Updates the this.vp and vp_times (unless VP == -1). */
-	public void setVP(int newVP) throws RulesBrokenException {
-		synchronized (vp_lock) {
-			constraints.updateVP(this, newVP);
-			this.vp = newVP;
-			// if the player points has changed, best update vp_times
-			if (newVP != -1) {
-				this.vp_times[100 + getVP()] = sharedCount.getAndIncrement();
-			}
-
-			raisePlayerVPChangedEvent();
-
-		}
-	}
-
 	public int getVP() {
-		synchronized (vp_lock) {
-			return vp + getAchievementsVP();
-		}
-	}
-
-	public int getSettlementVP() {
-		return vp;
+			return getAchievementsVP();
 	}
 
 	private int getAchievementsVP() {
@@ -132,6 +107,17 @@ public class Player implements Comparable<Player> {
 
 	public Collection<Achievement> getAchievements() {
 		return this.achievements;
+	}
+	
+	public int getAchievementCount(Achievement achievement) {
+    	int count = 0;
+    	synchronized(getAchievements()) {
+    		for (Achievement a : getAchievements()) {
+    			if (achievement.equals(a))
+    				count++;
+    		}
+    	}
+    	return count;
 	}
 
 	public boolean equals(Object o) {
