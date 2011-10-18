@@ -115,7 +115,13 @@ public class Game implements PlayerListener, GameConstraints {
     	}
     	return matches;
     }
-    public void looseAchievement(Player player, Achievement achievement) {
+    public void looseAchievement(Player player, Achievement achievement) throws RulesBrokenException {
+    	if (achievement.getCharacter() == 'c') {
+    		synchronized(player.getAchievements()) {
+    			Achievement settlement = Achievement.findByChar(getAchievements(), 's');
+    			player.add(settlement);
+    		}
+    	}
     }
     public void addGameListener(GameListener g) {
         this.gameListeners.add(g);

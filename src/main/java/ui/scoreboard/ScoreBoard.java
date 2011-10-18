@@ -274,7 +274,7 @@ public class ScoreBoard implements GameListener {
 			
 			for (final Achievement a: game.getAchievements()) {
 				String mainText = "+ " + a.getName();
-				if (player.getAchievements().contains(a) && a.getMaxInGame() == 1) {
+				if (player.getAchievements().contains(a) && (a.getMaxInGame() == 1 || a.getMaxPerPlayer() == 1)) {
 					mainText = "\u2212 " + a.getName();
 				}
 				AttributedString name = new AttributedString(mainText);
@@ -288,7 +288,7 @@ public class ScoreBoard implements GameListener {
 				
 				Rectangle minusButton = null;
 				Rectangle plusButton = new Rectangle(x,cursor - ascent,w-lineHeight, lineHeight);
-				if (a.getMaxInGame() != 1 && player.getAchievementCount(a) > 0) {
+				if (a.getMaxInGame() != 1 && a.getMaxPerPlayer() != 1 && player.getAchievementCount(a) > 0) {
 					graphics.drawLine(x + w - lineHeight, cursor - ascent, x+w-lineHeight, cursor + descent);
 					String minusSymbol ="\u2212"; 
 					graphics.drawString(minusSymbol, x+w-lineHeight + (lineHeight - graphics.getFontMetrics().stringWidth(minusSymbol))/2, cursor);
